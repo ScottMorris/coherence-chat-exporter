@@ -25,10 +25,18 @@ export class ExportPipeline {
   ) {}
 
   async export(
-    rawData: any, // Directory path or parsed object
+    data: any | Conversation[], // Raw data OR already normalized conversations
     options: ExportOptions
   ): Promise<ExportResult[]> {
-    const conversations = await this.provider.normalize(rawData);
+    let conversations: Conversation[];
+
+    if (Array.isArray(data) && data.length > 0 && 'messages' in data[0]) {
+        // Assume it's already normalized Conversation objects
+        conversations = data as Conversation[];
+    } else {
+        conversations = await this.provider.normalize(data);
+    }
+
     const results: ExportResult[] = [];
 
     for (const conv of conversations) {

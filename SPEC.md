@@ -134,7 +134,31 @@ const MainMenu = () => {
 };
 ```
 
-### 3. AI Tagging with Transformers.js
+### 3. Conversation Browser
+
+The "Browse & Export" flow allows users to select specific conversations to export.
+
+**Flow:**
+1. Select Source (Claude/ChatGPT).
+2. Input File/Directory Path (Data Loading).
+3. **Browser Interface**:
+    *   **Project List**: Group conversations by project (with an "All" option).
+    *   **Conversation List**:
+        *   Columns: Title, Date, Message Count.
+        *   Pagination: Support for large lists.
+        *   Multi-selection: Toggle multiple conversations for export.
+    *   **Preview**: View full conversation content (read-only).
+4. **Export**: Process only the selected conversations.
+
+**Key Inputs:**
+*   `Up`/`Down`: Navigate lists.
+*   `Left`/`Right`: Change pages (in conversation list).
+*   `Space`: Toggle selection.
+*   `Enter`: Open Preview (or select Project).
+*   `e`: Trigger Export of selected items.
+*   `Esc` / `Backspace`: Go back / Cancel.
+
+### 4. AI Tagging with Transformers.js
 
 **Optional Enhancement Layer:**
 
@@ -238,7 +262,7 @@ auto_tagged: true
 ---
 ```
 
-### 4. Export Pipeline with Tagging
+### 5. Export Pipeline with Tagging
 
 ```typescript
 // src/export/pipeline.ts
@@ -288,7 +312,7 @@ class ExportPipeline {
 }
 ```
 
-### 5. Configuration with Tagging
+### 6. Configuration with Tagging
 
 ```json
 {

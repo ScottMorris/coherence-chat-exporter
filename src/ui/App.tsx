@@ -6,6 +6,7 @@ import { ProgressBar } from './components/ProgressBar.js';
 import { PathInput } from './components/PathInput.js';
 import { TaggingSetup } from './components/TaggingSetup.js';
 import { Settings } from './components/Settings.js';
+import { Browser } from './components/browser/Browser.js';
 import { ClaudeProvider } from '../providers/claude.js';
 import { ChatGPTProvider } from '../providers/chatgpt.js';
 import { ExportPipeline } from '../export/pipeline.js';
@@ -15,15 +16,19 @@ import { Writer } from '../export/writer.js';
 import { ConversationTagger } from '../tagging/classifier.js';
 import { configManager } from '../config-manager.js';
 import { InputResolver } from '../utils/input-resolver.js';
+import { Conversation } from '../providers/types.js';
 
-type View = 'menu' | 'select-provider' | 'input-path' | 'exporting' | 'complete' | 'tagging-setup' | 'settings';
+type View = 'menu' | 'select-provider' | 'input-path' | 'loading' | 'browser' | 'exporting' | 'complete' | 'tagging-setup' | 'settings';
 
 export const App = () => {
   const [view, setView] = useState<View>('menu');
+  const [mode, setMode] = useState<'export' | 'browse'>('export'); // Track if we are in direct export or browse mode
   const [providerName, setProviderName] = useState<'claude' | 'chatgpt' | null>(null);
-  const [inputPath, setInputPath] = useState('');
   const [status, setStatus] = useState('');
   const [exportCount, setExportCount] = useState(0);
+
+  // Data state
+  const [loadedConversations, setLoadedConversations] = useState<Conversation[]>([]);
 
   // Load config on mount
   useEffect(() => {
@@ -32,8 +37,14 @@ export const App = () => {
 
   const handleMenuSelect = (value: string) => {
     if (value === 'exit') process.exit(0);
-    if (value === 'source') setView('select-provider');
-    if (value === 'browse') setView('select-provider');
+    if (value === 'source') {
+        setMode('export');
+        setView('select-provider');
+    }
+    if (value === 'browse') {
+        setMode('browse');
+        setView('select-provider');
+    }
     if (value === 'tagging') setView('tagging-setup');
     if (value === 'settings') setView('settings');
   };
@@ -44,18 +55,57 @@ export const App = () => {
   };
 
   const handlePathSubmit = async (pathStr: string) => {
-      setInputPath(pathStr);
-      setView('exporting');
-      setStatus('Initializing export...');
-
-      try {
-        await runExport(pathStr);
-      } catch (e: any) {
-          setStatus(`Error: ${e.message}`);
+      if (mode === 'export') {
+        setView('exporting');
+        setStatus('Initializing export...');
+        try {
+            await runDirectExport(pathStr);
+        } catch (e: any) {
+            setStatus(`Error: ${e.message}`);
+        }
+      } else {
+          // Browse mode
+          setView('loading');
+          setStatus('Loading conversations...');
+          try {
+              await loadDataForBrowsing(pathStr);
+          } catch (e: any) {
+              setStatus(`Error: ${e.message}`);
+          }
       }
   };
 
-  const runExport = async (pathStr: string) => {
+  const loadDataForBrowsing = async (pathStr: string) => {
+    if (!providerName) return;
+    const provider = providerName === 'claude' ? new ClaudeProvider() : new ChatGPTProvider();
+    const resolver = new InputResolver();
+
+    setStatus('Resolving input...');
+    const rawData = await resolver.resolve(pathStr);
+
+    setStatus('Parsing data...');
+    const conversations = await provider.normalize(rawData);
+
+    setLoadedConversations(conversations);
+    setView('browser');
+  };
+
+  const runDirectExport = async (pathStr: string) => {
+      if (!providerName) return;
+      const resolver = new InputResolver();
+      const rawData = await resolver.resolve(pathStr);
+
+      // For direct export, we normalize inside the pipeline usually, but our pipeline expects normalized data now?
+      // Let's check pipeline.export signature. It expects "any".
+      // Actually, looking at previous code: pipeline.export(exportData...) where exportData is from resolver.
+      // So pipeline handles normalization internally if we pass raw data?
+      // Wait, pipeline.ts: export(data: any, ...) -> calls provider.normalize(data).
+      // So yes, we pass raw data to pipeline.export.
+
+      await executeExport(rawData);
+  };
+
+  const executeExport = async (data: any, specificConversations?: Conversation[]) => {
       if (!providerName) return;
 
       const config = configManager.getConfig();
@@ -63,7 +113,6 @@ export const App = () => {
       const transformer = new MarkdownTransformer();
       const organizer = new Organizer(config.outputPath);
       const writer = new Writer();
-      const resolver = new InputResolver();
 
       let tagger: ConversationTagger | undefined;
       if (config.tagging.enabled) {
@@ -72,25 +121,43 @@ export const App = () => {
           await tagger.initialize();
       }
 
+      // If we have specific conversations (from Browser), we need a way to pass them.
+      // The current pipeline.export takes `data: any`.
+      // If we pass already normalized conversations, the provider.normalize might fail or double-process?
+      // We should check pipeline.ts implementation.
+      // Hack: If we have specificConversations, we can skip provider.normalize in the pipeline
+      // OR we can create a simple "PreNormalizedProvider" wrapper.
+      // Let's modify the pipeline call or logic.
+
+      // Actually, cleaner way:
+      // If specificConversations is set, we bypass the provider.normalize step in logic below.
+
       const pipeline = new ExportPipeline(provider, transformer, organizer, writer, tagger);
 
-      setStatus(`Resolving input...`);
-      // We need to resolve input before passing to pipeline.export,
-      // OR we update pipeline to use resolver.
-      // But pipeline.export expects 'rawData' which provider.normalize consumes.
-      // The updated provider now expects the output of resolver OR raw array.
-      // So we should resolve here.
+      setStatus(`Exporting...`);
 
-      const exportData = await resolver.resolve(pathStr);
+      // pipeline.export now accepts specificConversations (Conversation[]) or raw data
+      const inputData = specificConversations || data;
 
-      setStatus(`Parsing ${providerName} data...`);
-      const results = await pipeline.export(exportData, {
+      const results = await pipeline.export(inputData, {
           enableTagging: config.tagging.enabled,
           tagThreshold: config.tagging.threshold
       });
 
       setExportCount(results.length);
       setView('complete');
+  };
+
+  const handleBrowserExport = async (selectedConversations: Conversation[]) => {
+      if (selectedConversations.length === 0) return;
+      setView('exporting');
+      setStatus(`Exporting ${selectedConversations.length} conversations...`);
+
+      try {
+        await executeExport(null, selectedConversations);
+      } catch (e: any) {
+        setStatus(`Error: ${e.message}`);
+      }
   };
 
   const config = configManager.getConfig();
@@ -108,6 +175,16 @@ export const App = () => {
             onCancel={() => setView('select-provider')}
           />
       )}
+      {view === 'loading' && <ProgressBar status={status} />}
+
+      {view === 'browser' && (
+          <Browser
+            conversations={loadedConversations}
+            onExport={handleBrowserExport}
+            onBack={() => setView('menu')}
+          />
+      )}
+
       {view === 'tagging-setup' && (
           <TaggingSetup onBack={() => setView('menu')} />
       )}
