@@ -1,0 +1,52 @@
+import { Provider, Conversation } from '../providers/types.js';
+import { MarkdownTransformer } from './transformer.js';
+import { Organizer } from './organizer.js';
+import { Writer } from './writer.js';
+import { ConversationTagger } from '../tagging/classifier.js';
+
+interface ExportOptions {
+  enableTagging: boolean;
+  tagThreshold: number;
+}
+
+export interface ExportResult {
+  conversation: Conversation;
+  path: string;
+  tags?: string[];
+}
+
+export class ExportPipeline {
+  constructor(
+    private provider: Provider,
+    private transformer: MarkdownTransformer,
+    private organizer: Organizer,
+    private writer: Writer,
+    private tagger?: ConversationTagger
+  ) {}
+
+  async export(
+    rawData: any, // Directory path or parsed object
+    options: ExportOptions
+  ): Promise<ExportResult[]> {
+    const conversations = await this.provider.normalize(rawData);
+    const results: ExportResult[] = [];
+
+    for (const conv of conversations) {
+      if (options.enableTagging && this.tagger) {
+          try {
+              conv.tags = await this.tagger.tagConversation(conv);
+          } catch (e) {
+              console.warn(`Tagging failed for ${conv.title}:`, e);
+          }
+      }
+
+      const markdown = this.transformer.toMarkdown(conv);
+      const filePath = this.organizer.getPath(conv);
+
+      await this.writer.write(filePath, markdown);
+      results.push({ conversation: conv, path: filePath, tags: conv.tags });
+    }
+
+    return results;
+  }
+}
