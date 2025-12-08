@@ -1,0 +1,404 @@
+# Coherence Chat Archive Tool - Specification v2
+
+## Overview
+A CLI tool with TUI (using Ink) for exporting Claude/ChatGPT conversations into organized markdown journal entries, with optional AI-powered tagging via Transformers.js.
+
+## Core Requirements
+
+### 1. Multi-Provider Support with Data Models
+
+```
+chat-archive/
+├── providers/
+│   ├── claude.ts           # Parses Claude export format
+│   ├── chatgpt.ts          # Parses ChatGPT export format
+│   ├── types.ts            # Shared conversation types
+│   └── schemas/
+│       ├── claude-schema.md    # Documents Claude export structure
+│       └── chatgpt-schema.md   # Documents ChatGPT export structure
+```
+
+#### Claude Export Structure (`conversations.json`)
+
+```typescript
+// Based on your screenshot showing: conversations.json, memories.json, projects.json, users.json
+
+interface ClaudeExport {
+  conversations: ClaudeConversation[];
+  memories?: Memory[];
+  projects?: Project[];
+  users?: User[];
+}
+
+interface ClaudeConversation {
+  uuid: string;
+  name: string;
+  summary: string;
+  created_at: string; // ISO timestamp
+  updated_at: string;
+  project_uuid?: string;
+  chat_messages: ChatMessage[];
+}
+
+interface ChatMessage {
+  uuid: string;
+  text: string;
+  sender: 'human' | 'assistant';
+  created_at: string;
+  attachments?: Attachment[];
+  files?: File[];
+}
+
+interface Project {
+  uuid: string;
+  name: string;
+  description?: string;
+  created_at: string;
+}
+
+interface Memory {
+  // Structure TBD - can extract from memories.json
+}
+
+interface User {
+  // Structure TBD - can extract from users.json
+}
+```
+
+#### ChatGPT Export Structure
+
+```typescript
+// ChatGPT exports as conversations.json (different structure)
+interface ChatGPTExport {
+  conversations: ChatGPTConversation[];
+}
+
+interface ChatGPTConversation {
+  id: string;
+  title: string;
+  create_time: number; // Unix timestamp
+  update_time: number;
+  mapping: { [key: string]: MessageNode };
+  current_node?: string;
+}
+
+interface MessageNode {
+  id: string;
+  message?: {
+    id: string;
+    author: { role: 'user' | 'assistant' | 'system' };
+    content: { content_type: string; parts: string[] };
+    create_time: number;
+  };
+  parent?: string;
+  children: string[];
+}
+```
+
+### 2. TUI Interface (using Ink)
+
+**Component Structure:**
+```typescript
+// src/ui/components/
+├── App.tsx              # Main app router
+├── MainMenu.tsx         # Entry point
+├── ProviderSelect.tsx   # Choose Claude/ChatGPT
+├── ProjectBrowser.tsx   # Browse projects
+├── ConversationList.tsx # Browse conversations
+├── ExportPreview.tsx    # Review before export
+├── TaggingSetup.tsx     # Optional AI tagging setup
+└── ProgressBar.tsx      # Export progress
+```
+
+**Main Menu:**
+```tsx
+import React from 'react';
+import {Box, Text} from 'ink';
+import SelectInput from 'ink-select-input';
+
+const MainMenu = () => {
+  const items = [
+    {label: '📦 Select Export Source', value: 'source'},
+    {label: '📂 Browse & Export', value: 'browse'},
+    {label: '🏷️  Configure Tagging (Optional)', value: 'tagging'},
+    {label: '⚙️  Settings', value: 'settings'},
+    {label: '🚪 Exit', value: 'exit'}
+  ];
+
+  return (
+    <Box flexDirection="column">
+      <Text bold color="cyan">Chat Archive Tool</Text>
+      <SelectInput items={items} onSelect={handleSelect} />
+    </Box>
+  );
+};
+```
+
+### 3. AI Tagging with Transformers.js
+
+**Optional Enhancement Layer:**
+
+```typescript
+// src/tagging/
+├── setup.ts        # Download model on first use
+├── classifier.ts   # Tag generation
+└── models.ts       # Model management
+
+interface TaggerConfig {
+  enabled: boolean;
+  model: 'Xenova/mobilebert-uncased-mnli' | string;
+  categories: string[];
+  threshold: number;
+}
+```
+
+**Tagging Setup Flow:**
+```tsx
+// First time user wants tagging:
+┌─────────────────────────────────────┐
+│ AI Tagging Setup                    │
+├─────────────────────────────────────┤
+│                                     │
+│ AI tagging adds semantic tags to    │
+│ your conversations automatically.   │
+│                                     │
+│ This requires downloading:          │
+│ • MobileBERT model (~25MB)          │
+│                                     │
+│ Download now? (y/n)                 │
+│                                     │
+│ [Downloading... ████████░░ 80%]     │
+└─────────────────────────────────────┘
+```
+
+**Tagging Implementation:**
+```typescript
+import { pipeline } from '@xenova/transformers';
+
+class ConversationTagger {
+  private classifier: any;
+
+  async initialize() {
+    // Downloads model to ~/.cache on first run
+    this.classifier = await pipeline(
+      'zero-shot-classification',
+      'Xenova/mobilebert-uncased-mnli'
+    );
+  }
+
+  async tagConversation(conversation: Conversation): Promise<string[]> {
+    const text = this.extractKeyContent(conversation);
+
+    const categories = [
+      'framework development',
+      'personal reflection',
+      'relationship dynamics',
+      'consciousness exploration',
+      'integration work',
+      'practical planning',
+      'emotional processing',
+      'neurodivergence',
+      'creativity',
+      'problem solving'
+    ];
+
+    const result = await this.classifier(text, categories, {
+      multi_label: true
+    });
+
+    // Return tags above threshold (e.g., 0.5)
+    return result.labels
+      .filter((_, i) => result.scores[i] > 0.5)
+      .slice(0, 5); // Max 5 tags
+  }
+
+  private extractKeyContent(conv: Conversation): string {
+    // Use title + first few messages as context
+    const firstMessages = conv.messages
+      .slice(0, 6)
+      .map(m => m.text)
+      .join(' ');
+
+    return `${conv.title}. ${firstMessages}`.slice(0, 512);
+  }
+}
+```
+
+**Enhanced Frontmatter with Tags:**
+```yaml
+---
+date: 2024-12-07
+provider: claude
+project: Coherence Loop Development
+title: Veracity Engine Discussion
+conversation_id: abc123
+participants: ["Scott", "Claude"]
+tags: ["framework development", "consciousness exploration", "integration work"]
+auto_tagged: true
+---
+```
+
+### 4. Export Pipeline with Tagging
+
+```typescript
+// src/export/pipeline.ts
+
+interface ExportOptions {
+  enableTagging: boolean;
+  tagThreshold: number;
+  format: 'markdown' | 'json';
+}
+
+class ExportPipeline {
+  constructor(
+    private provider: Provider,
+    private transformer: MarkdownTransformer,
+    private tagger?: ConversationTagger
+  ) {}
+
+  async export(
+    conversations: Conversation[],
+    options: ExportOptions
+  ): Promise<ExportResult[]> {
+    const results: ExportResult[] = [];
+
+    for (const conv of conversations) {
+      // 1. Parse provider data
+      const normalized = this.provider.normalize(conv);
+
+      // 2. Optional: AI tagging
+      if (options.enableTagging && this.tagger) {
+        normalized.tags = await this.tagger.tagConversation(normalized);
+      }
+
+      // 3. Transform to markdown
+      const markdown = this.transformer.toMarkdown(normalized);
+
+      // 4. Organize by date
+      const path = this.organizer.getPath(normalized);
+
+      // 5. Write file
+      await this.writer.write(path, markdown);
+
+      results.push({ conversation: conv, path, tags: normalized.tags });
+    }
+
+    return results;
+  }
+}
+```
+
+### 5. Configuration with Tagging
+
+```json
+{
+  "outputPath": "/home/scott/journal",
+  "providers": {
+    "claude": {
+      "enabled": true,
+      "autoDetectExports": true,
+      "lastExportPath": "/home/scott/Downloads/..."
+    },
+    "chatgpt": {
+      "enabled": true,
+      "autoDetectExports": true
+    }
+  },
+  "tagging": {
+    "enabled": false,
+    "model": "Xenova/mobilebert-uncased-mnli",
+    "threshold": 0.5,
+    "maxTags": 5,
+    "customCategories": [
+      "framework development",
+      "personal reflection",
+      "relationship dynamics",
+      "consciousness exploration"
+    ]
+  },
+  "formatting": {
+    "dateFormat": "YYYY-MM-DD",
+    "folderStructure": "{year}/{month}-{monthName}/",
+    "filenameTemplate": "{day}-{slug}.md"
+  }
+}
+```
+
+## Technical Stack
+
+**Core:**
+- TypeScript + Node.js
+- Commander.js (CLI framework)
+- **Ink** (React-based TUI) ✨
+- **@xenova/transformers** (AI tagging, optional)
+
+**Utilities:**
+- date-fns (date handling)
+- gray-matter (YAML frontmatter)
+- slugify (filename generation)
+- chalk (terminal colours)
+- ink-select-input (menu selections)
+- ink-spinner (loading states)
+- ink-text-input (user input)
+
+**File Structure:**
+```
+chat-archive/
+├── src/
+│   ├── cli.ts              # Main entry
+│   ├── ui/
+│   │   ├── App.tsx         # Main Ink app
+│   │   └── components/     # Ink components
+│   ├── providers/
+│   │   ├── base.ts
+│   │   ├── claude.ts
+│   │   ├── chatgpt.ts
+│   │   └── schemas/        # Export format docs
+│   ├── tagging/            # ✨ New
+│   │   ├── setup.ts
+│   │   ├── classifier.ts
+│   │   └── models.ts
+│   ├── export/
+│   │   ├── pipeline.ts     # Updated with tagging
+│   │   ├── transformer.ts
+│   │   ├── organizer.ts
+│   │   └── writer.ts
+│   └── config.ts
+├── package.json
+├── tsconfig.json
+└── README.md
+```
+
+## Usage Flow with Tagging
+
+```bash
+# Initial setup
+chat-archive init
+
+# Interactive mode
+chat-archive
+
+# Enable tagging (downloads model)
+chat-archive config tagging --enable
+
+# Export with tagging
+chat-archive export --provider claude --tag
+
+# Export without tagging (faster)
+chat-archive export --provider claude --no-tag
+```
+
+**Interactive Tagging Flow:**
+```
+┌─────────────────────────────────────┐
+│ Exporting 3 conversations...        │
+├─────────────────────────────────────┤
+│                                     │
+│ ✓ Parsed conversations              │
+│ ○ Generating tags... (optional)    │
+│   └─ veracity-engine-discussion     │
+│      Tags: framework, consciousness │
+│ ○ Writing markdown files            │
+│ ○ Complete                          │
+└─────────────────────────────────────┘
+```
