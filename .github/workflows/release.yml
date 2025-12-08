@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '24'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install Dependencies
@@ -30,12 +30,10 @@ jobs:
 
       - name: Create AppImages (Linux)
         if: runner.os == 'Linux'
-        strategy:
-          matrix:
-            arch: [x64, arm64]
         run: |
            sudo apt-get install -y fuse libfuse2
-           node scripts/build-appimage.js --arch ${{ matrix.arch }}
+           node scripts/build-appimage.js --arch x64
+           node scripts/build-appimage.js --arch arm64
 
       - name: Create NPM Tarball
         run: npm pack
