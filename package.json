@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "bundle": "node scripts/bundle.js",
     "start": "node dist/cli.js",
     "test": "jest"
   },
