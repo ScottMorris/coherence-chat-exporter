@@ -18,15 +18,33 @@ import { configManager } from '../config-manager.js';
 import { InputResolver } from '../utils/input-resolver.js';
 import { Conversation } from '../providers/types.js';
 
-type View = 'menu' | 'select-provider' | 'input-path' | 'loading' | 'browser' | 'exporting' | 'complete' | 'tagging-setup' | 'settings';
+enum AppView {
+  Menu = 'menu',
+  SelectProvider = 'select-provider',
+  InputPath = 'input-path',
+  Loading = 'loading',
+  Browser = 'browser',
+  Exporting = 'exporting',
+  Complete = 'complete',
+  TaggingSetup = 'tagging-setup',
+  Settings = 'settings'
+}
 
 enum AppMode {
   Export = 'export',
   Browse = 'browse'
 }
 
+enum MenuOption {
+  Source = 'source',
+  Browse = 'browse',
+  Tagging = 'tagging',
+  Settings = 'settings',
+  Exit = 'exit'
+}
+
 export const App = () => {
-  const [view, setView] = useState<View>('menu');
+  const [view, setView] = useState<AppView>(AppView.Menu);
   const [mode, setMode] = useState<AppMode>(AppMode.Export); // Track if we are in direct export or browse mode
   const [providerName, setProviderName] = useState<'claude' | 'chatgpt' | null>(null);
   const [status, setStatus] = useState('');
@@ -41,27 +59,27 @@ export const App = () => {
   }, []);
 
   const handleMenuSelect = (value: string) => {
-    if (value === 'exit') process.exit(0);
-    if (value === 'source') {
+    if (value === MenuOption.Exit) process.exit(0);
+    if (value === MenuOption.Source) {
         setMode(AppMode.Export);
-        setView('select-provider');
+        setView(AppView.SelectProvider);
     }
-    if (value === 'browse') {
+    if (value === MenuOption.Browse) {
         setMode(AppMode.Browse);
-        setView('select-provider');
+        setView(AppView.SelectProvider);
     }
-    if (value === 'tagging') setView('tagging-setup');
-    if (value === 'settings') setView('settings');
+    if (value === MenuOption.Tagging) setView(AppView.TaggingSetup);
+    if (value === MenuOption.Settings) setView(AppView.Settings);
   };
 
   const handleProviderSelect = (provider: 'claude' | 'chatgpt') => {
     setProviderName(provider);
-    setView('input-path');
+    setView(AppView.InputPath);
   };
 
   const handlePathSubmit = async (pathStr: string) => {
       if (mode === AppMode.Export) {
-        setView('exporting');
+        setView(AppView.Exporting);
         setStatus('Initializing export...');
         try {
             await runDirectExport(pathStr);
@@ -70,7 +88,7 @@ export const App = () => {
         }
       } else {
           // Browse mode
-          setView('loading');
+          setView(AppView.Loading);
           setStatus('Loading conversations...');
           try {
               await loadDataForBrowsing(pathStr);
@@ -92,7 +110,7 @@ export const App = () => {
     const conversations = await provider.normalize(rawData);
 
     setLoadedConversations(conversations);
-    setView('browser');
+    setView(AppView.Browser);
   };
 
   const runDirectExport = async (pathStr: string) => {
@@ -126,17 +144,6 @@ export const App = () => {
           await tagger.initialize();
       }
 
-      // If we have specific conversations (from Browser), we need a way to pass them.
-      // The current pipeline.export takes `data: any`.
-      // If we pass already normalized conversations, the provider.normalize might fail or double-process?
-      // We should check pipeline.ts implementation.
-      // Hack: If we have specificConversations, we can skip provider.normalize in the pipeline
-      // OR we can create a simple "PreNormalizedProvider" wrapper.
-      // Let's modify the pipeline call or logic.
-
-      // Actually, cleaner way:
-      // If specificConversations is set, we bypass the provider.normalize step in logic below.
-
       const pipeline = new ExportPipeline(provider, transformer, organizer, writer, tagger);
 
       setStatus(`Exporting...`);
@@ -150,12 +157,12 @@ export const App = () => {
       });
 
       setExportCount(results.length);
-      setView('complete');
+      setView(AppView.Complete);
   };
 
   const handleBrowserExport = async (selectedConversations: Conversation[]) => {
       if (selectedConversations.length === 0) return;
-      setView('exporting');
+      setView(AppView.Exporting);
       setStatus(`Exporting ${selectedConversations.length} conversations...`);
 
       try {
@@ -169,35 +176,35 @@ export const App = () => {
 
   return (
     <Box>
-      {view === 'menu' && <MainMenu onSelect={handleMenuSelect} />}
-      {view === 'select-provider' && (
-          <ProviderSelect onSelect={handleProviderSelect} onBack={() => setView('menu')} />
+      {view === AppView.Menu && <MainMenu onSelect={handleMenuSelect} />}
+      {view === AppView.SelectProvider && (
+          <ProviderSelect onSelect={handleProviderSelect} onBack={() => setView(AppView.Menu)} />
       )}
-      {view === 'input-path' && (
+      {view === AppView.InputPath && (
           <PathInput
             prompt={`Enter path to ${providerName} export directory (or .zip/.json):`}
             onSubmit={handlePathSubmit}
-            onCancel={() => setView('select-provider')}
+            onCancel={() => setView(AppView.SelectProvider)}
           />
       )}
-      {view === 'loading' && <ProgressBar status={status} />}
+      {view === AppView.Loading && <ProgressBar status={status} />}
 
-      {view === 'browser' && (
+      {view === AppView.Browser && (
           <Browser
             conversations={loadedConversations}
             onExport={handleBrowserExport}
-            onBack={() => setView('menu')}
+            onBack={() => setView(AppView.Menu)}
           />
       )}
 
-      {view === 'tagging-setup' && (
-          <TaggingSetup onBack={() => setView('menu')} />
+      {view === AppView.TaggingSetup && (
+          <TaggingSetup onBack={() => setView(AppView.Menu)} />
       )}
-      {view === 'settings' && (
-          <Settings onBack={() => setView('menu')} />
+      {view === AppView.Settings && (
+          <Settings onBack={() => setView(AppView.Menu)} />
       )}
-      {view === 'exporting' && <ProgressBar status={status} />}
-      {view === 'complete' && (
+      {view === AppView.Exporting && <ProgressBar status={status} />}
+      {view === AppView.Complete && (
           <Box flexDirection="column" padding={1}>
               <Text color="green">✔ Export Complete!</Text>
               <Text>Processed {exportCount} conversations.</Text>
