@@ -10,6 +10,7 @@ interface ConversationListProps {
   selectedUuids: string[];
   onBack: () => void;
   onExport: () => void;
+  onViewStats?: () => void;
 }
 
 export const ConversationList: React.FC<ConversationListProps> = ({
@@ -19,7 +20,8 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   onSelectionChange,
   selectedUuids,
   onBack,
-  onExport
+  onExport,
+  onViewStats
 }) => {
   const { stdout } = useStdout();
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -85,6 +87,9 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     if (input === 'e') {
         onExport();
     }
+    if (input === 's' && onViewStats) {
+        onViewStats();
+    }
     if (key.escape || key.backspace) {
         onBack();
     }
@@ -139,6 +144,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
             <Text bold color="green"> Enter</Text>: Preview
             <Text bold color="green"> Arrows</Text>: Navigate/Page
             <Text bold color="yellow"> 'e'</Text>: Export Selected ({selectedUuids.length})
+            <Text bold color="cyan"> 's'</Text>: Stats
          </Text>
       </Box>
     </Box>

@@ -7,6 +7,7 @@ import { PathInput } from './components/PathInput.js';
 import { TaggingSetup } from './components/TaggingSetup.js';
 import { Settings } from './components/Settings.js';
 import { Browser } from './components/browser/Browser.js';
+import { StatsDashboard } from './components/stats/StatsDashboard.js';
 import { ClaudeProvider } from '../providers/claude.js';
 import { ChatGPTProvider } from '../providers/chatgpt.js';
 import { ExportPipeline } from '../export/pipeline.js';
@@ -24,6 +25,7 @@ enum AppView {
   InputPath = 'input-path',
   Loading = 'loading',
   Browser = 'browser',
+  Stats = 'stats',
   Exporting = 'exporting',
   Complete = 'complete',
   TaggingSetup = 'tagging-setup',
@@ -32,12 +34,14 @@ enum AppView {
 
 enum AppMode {
   Export = 'export',
-  Browse = 'browse'
+  Browse = 'browse',
+  Stats = 'stats'
 }
 
 enum MenuOption {
   Source = 'source',
   Browse = 'browse',
+  Stats = 'stats',
   Tagging = 'tagging',
   Settings = 'settings',
   Exit = 'exit'
@@ -68,6 +72,10 @@ export const App = () => {
         setMode(AppMode.Browse);
         setView(AppView.SelectProvider);
     }
+    if (value === MenuOption.Stats) {
+        setMode(AppMode.Stats);
+        setView(AppView.SelectProvider);
+    }
     if (value === MenuOption.Tagging) setView(AppView.TaggingSetup);
     if (value === MenuOption.Settings) setView(AppView.Settings);
   };
@@ -87,7 +95,7 @@ export const App = () => {
             setStatus(`Error: ${e.message}`);
         }
       } else {
-          // Browse mode
+          // Browse or Stats mode
           setView(AppView.Loading);
           setStatus('Loading conversations...');
           try {
@@ -110,7 +118,11 @@ export const App = () => {
     const conversations = await provider.normalize(rawData);
 
     setLoadedConversations(conversations);
-    setView(AppView.Browser);
+    if (mode === AppMode.Stats) {
+        setView(AppView.Stats);
+    } else {
+        setView(AppView.Browser);
+    }
   };
 
   const runDirectExport = async (pathStr: string) => {
@@ -194,6 +206,17 @@ export const App = () => {
             conversations={loadedConversations}
             onExport={handleBrowserExport}
             onBack={() => setView(AppView.Menu)}
+            onViewStats={() => setView(AppView.Stats)}
+          />
+      )}
+
+      {view === AppView.Stats && (
+          <StatsDashboard
+            conversations={loadedConversations}
+            onBack={() => {
+                if (mode === AppMode.Browse) setView(AppView.Browser);
+                else setView(AppView.Menu);
+            }}
           />
       )}
 

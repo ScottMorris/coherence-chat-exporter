@@ -158,7 +158,28 @@ The "Browse & Export" flow allows users to select specific conversations to expo
 *   `e`: Trigger Export of selected items.
 *   `Esc` / `Backspace`: Go back / Cancel.
 
-### 4. AI Tagging with Transformers.js
+### 4. Stats Dashboard
+
+The Stats Dashboard provides insights into the loaded conversations before export.
+
+**Access Points:**
+1.  **Main Menu**: Select "Stats Dashboard" -> Load Data -> View Stats.
+2.  **Browser**: Press `s` while browsing conversations.
+
+**Metrics:**
+*   Total Conversations & Messages.
+*   Average Messages per Conversation.
+*   Date Range (Earliest to Latest).
+*   **Charts**:
+    *   Top Projects (Bar Chart).
+    *   Top Tags (Bar Chart, if available).
+    *   Activity over Time (Monthly Bar Chart).
+
+**UI Components:**
+*   `StatsDashboard.tsx`: Main view layout.
+*   `AsciiChart.tsx`: Reusable ASCII bar chart renderer.
+
+### 5. AI Tagging with Transformers.js
 
 **Optional Enhancement Layer:**
 
@@ -262,7 +283,7 @@ auto_tagged: true
 ---
 ```
 
-### 5. Export Pipeline with Tagging
+### 6. Export Pipeline with Tagging
 
 ```typescript
 // src/export/pipeline.ts
@@ -312,7 +333,7 @@ class ExportPipeline {
 }
 ```
 
-### 6. Configuration with Tagging
+### 7. Configuration with Tagging
 
 ```json
 {
@@ -348,7 +369,7 @@ class ExportPipeline {
 }
 ```
 
-### 7. Colour Palette
+### 8. Colour Palette
 
 The TUI uses a specific set of standard terminal colours to ensure readability and consistency:
 
