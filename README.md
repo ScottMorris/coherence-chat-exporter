@@ -10,6 +10,7 @@ Includes optional **AI Semantic Tagging** using a local BERT model to automatica
 -   **Flexible Input**: Supports directory inputs, direct JSON files, or ZIP archives.
 -   **TUI & CLI**:
     -   Interactive Terminal UI (Ink-based) for easy navigation.
+    -   **Conversation Browser**: Preview and select specific conversations to export.
     -   Headless CLI commands for scripting and automation.
 -   **Structured Export**:
     -   Converts conversations to clean Markdown.
@@ -58,8 +59,22 @@ coherence
 
 Use the arrow keys to navigate the menu:
 -   **Select Export Source**: Choose between Claude or ChatGPT.
+-   **Browse & Export**: Load data and browse/filter conversations before exporting.
 -   **Configure Tagging**: Enable/Disable AI tagging.
 -   **Settings**: View/Save configuration.
+
+### Conversation Browser
+
+The browser allows you to selectively export conversations.
+
+1.  Select **Browse & Export**.
+2.  Enter the path to your export file/directory.
+3.  **Navigate**:
+    -   `Up`/`Down`: Select Projects or Conversations.
+    -   `Left`/`Right`: Change pages.
+    -   `Space`: Toggle selection.
+    -   `Enter`: Preview conversation.
+    -   `e`: Export selected items.
 
 ### CLI Mode
 
