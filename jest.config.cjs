@@ -1,5 +1,5 @@
 module.exports = {
-  // preset: 'ts-jest/presets/default-esm', // Use ESM preset
+  preset: 'ts-jest/presets/default-esm', // Use ESM preset
   testEnvironment: 'node',
   transform: {
     '^.+\\.tsx?$': ['ts-jest', { useESM: true }],
