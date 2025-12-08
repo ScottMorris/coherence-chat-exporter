@@ -13,6 +13,7 @@ import { Writer } from './export/writer.js';
 import { ConversationTagger } from './tagging/classifier.js';
 import { configManager } from './config-manager.js';
 import { InputResolver } from './utils/input-resolver.js';
+import { registerCompletionCommand } from './completion.js';
 import chalk from 'chalk';
 
 // Load config first
@@ -22,9 +23,11 @@ const config = configManager.getConfig();
 const program = new Command();
 
 program
-  .name('chat-archive')
-  .description('Export Claude/ChatGPT conversations to Markdown')
+  .name('coherence')
+  .description('Coherence Chat Exporter - Export Claude/ChatGPT conversations to Markdown')
   .version('1.0.0');
+
+registerCompletionCommand(program);
 
 program
   .command('export')

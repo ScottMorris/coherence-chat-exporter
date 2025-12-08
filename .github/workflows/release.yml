@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Create Bundle
+        run: node scripts/bundle.js
+
+      - name: Create AppImages (Linux)
+        if: runner.os == 'Linux'
+        strategy:
+          matrix:
+            arch: [x64, arm64]
+        run: |
+           sudo apt-get install -y fuse libfuse2
+           node scripts/build-appimage.js --arch ${{ matrix.arch }}
+
+      - name: Create NPM Tarball
+        run: npm pack
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/coherence.bundle.mjs
+            out/*.AppImage
+            *.tgz
+          generate_release_notes: true

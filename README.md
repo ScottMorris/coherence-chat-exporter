@@ -1,4 +1,4 @@
-# Coherence Chat Archive Tool
+# Coherence Chat Exporter
 
 A powerful CLI and TUI (Terminal User Interface) tool for exporting and archiving your conversation history from **Claude** and **ChatGPT**. It converts your JSON exports into organized Markdown files, suitable for personal knowledge management (PKM) systems like Obsidian or Logseq.
 
@@ -19,14 +19,14 @@ Includes optional **AI Semantic Tagging** using a local BERT model to automatica
     -   Uses `@huggingface/transformers` to run a local classification model.
     -   Automatically generates tags based on conversation content.
     -   **Privacy-first**: The model runs entirely locally; no data leaves your machine.
--   **Persistent Configuration**: Saves your preferences (output path, tagging settings) to `~/.config/chat-archive/config.json` (XDG compatible).
+-   **Persistent Configuration**: Saves your preferences (output path, tagging settings) to `~/.config/coherence/config.json` (XDG compatible).
 
 ## Installation
 
 1.  Clone the repository:
     ```bash
-    git clone https://github.com/your-repo/chat-archive.git
-    cd chat-archive
+    git clone https://github.com/your-repo/coherence-chat-exporter.git
+    cd coherence-chat-exporter
     ```
 
 2.  Install dependencies:
@@ -53,7 +53,7 @@ Simply run the tool without arguments to launch the interactive interface:
 ```bash
 npm start
 # OR if linked
-chat-archive
+coherence
 ```
 
 Use the arrow keys to navigate the menu:
@@ -67,13 +67,13 @@ Use the `export` command for automated or single-shot exports.
 
 ```bash
 # Export Claude data from a directory
-chat-archive export --provider claude --input ./claude_export/ --output ./journal
+coherence export --provider claude --input ./claude_export/ --output ./journal
 
 # Export ChatGPT data from a zip file with tagging enabled
-chat-archive export --provider chatgpt --input ./chatgpt_export.zip --tag
+coherence export --provider chatgpt --input ./chatgpt_export.zip --tag
 
 # View help
-chat-archive export --help
+coherence export --help
 ```
 
 **Options:**
@@ -85,7 +85,7 @@ chat-archive export --help
 
 ## Configuration
 
-Configuration is stored in `~/.config/chat-archive/config.json`. You can edit this file manually or save settings via the TUI.
+Configuration is stored in `~/.config/coherence/config.json`. You can edit this file manually or save settings via the TUI.
 
 ```json
 {
