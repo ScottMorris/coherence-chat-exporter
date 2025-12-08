@@ -148,22 +148,22 @@ Conversations are exported to Markdown with YAML frontmatter containing metadata
 }
 ```
 
-**Output (`2023/10-october/27-designing-the-chat-archive-tool.md`)**
+**Output (`2025/10-october/27-designing-the-chat-archive-tool.md`)**
 ```markdown
 ---
 title: Designing the Chat Archive Tool
-date: '2023-10-27'
-updated: '2023-10-27'
+date: '2025-10-27'
+updated: '2025-10-27'
 uuid: 550e8400-e29b-41d4-a716-446655440000
 tags: ["programming", "AI", "tooling"]
 ---
-### HUMAN (2023-10-27T10:01:00.000Z)
+### HUMAN (2025-10-27T10:01:00.000Z)
 
 I want to build a CLI tool to archive my Claude conversations. It should be a TUI using Ink.
 
 ---
 
-### ASSISTANT (2023-10-27T10:02:00.000Z)
+### ASSISTANT (2025-10-27T10:02:00.000Z)
 
 That sounds like a great project! Using Ink for the TUI...
 ```
