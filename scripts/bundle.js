@@ -17,7 +17,7 @@ try {
         entryPoints: ['src/cli.ts'],
         bundle: true,
         platform: 'node',
-        target: 'node18',
+        target: 'node24',
         outfile: bundleFile,
         format: 'esm', // Keeping it ESM to support TLA in Ink/Yoga
         external: [

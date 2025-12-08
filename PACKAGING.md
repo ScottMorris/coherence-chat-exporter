@@ -43,12 +43,14 @@ You can run this bundle directly with Node.js:
 
  ## 3. AppImage (Linux)
 
- A standalone AppImage for Linux is generated during the release. This is a self-contained executable that includes Node.js.
+ A standalone AppImage for Linux is generated during the release. This is a self-contained executable that includes Node.js. Both `x64` and `arm64` architectures are supported.
 
  ### Usage
- 1. Download `Coherence-x86_64.AppImage`.
- 2. Make it executable: `chmod +x Coherence-x86_64.AppImage`.
- 3. Run it: `./Coherence-x86_64.AppImage export ...`
+ 1. Download `Coherence-x64.AppImage` (or `arm64`).
+ 2. Make it executable: `chmod +x Coherence-x64.AppImage`.
+ 3. Run it: `./Coherence-x64.AppImage export ...`
+
+ *Note: AppImages do not automatically install shell completion. You must manually source the completion script as described below.*
 
  ## 4. Shell Completion
 

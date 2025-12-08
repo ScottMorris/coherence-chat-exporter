@@ -28,11 +28,14 @@ jobs:
       - name: Create Bundle
         run: node scripts/bundle.js
 
-      - name: Create AppImage (Linux)
+      - name: Create AppImages (Linux)
         if: runner.os == 'Linux'
+        strategy:
+          matrix:
+            arch: [x64, arm64]
         run: |
            sudo apt-get install -y fuse libfuse2
-           node scripts/build-appimage.js
+           node scripts/build-appimage.js --arch ${{ matrix.arch }}
 
       - name: Create NPM Tarball
         run: npm pack
