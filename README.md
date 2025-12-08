@@ -1,4 +1,4 @@
-# Coherence Chat Archive Tool (v2)
+# Coherence Chat Archive Tool
 
 A powerful CLI and TUI (Terminal User Interface) tool for exporting and archiving your conversation history from **Claude** and **ChatGPT**. It converts your JSON exports into organized Markdown files, suitable for personal knowledge management (PKM) systems like Obsidian or Logseq.
 
