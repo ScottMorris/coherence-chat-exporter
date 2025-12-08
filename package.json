@@ -11,7 +11,7 @@
     "build": "tsc",
     "bundle": "node scripts/bundle.js",
     "start": "node dist/cli.js",
-    "test": "jest"
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "dependencies": {
     "@huggingface/transformers": "^3.8.1",
