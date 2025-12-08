@@ -1,4 +1,4 @@
-import { pipeline } from '@xenova/transformers';
+import { pipeline } from '@huggingface/transformers';
 import { Conversation } from '../providers/types.js';
 import { defaultConfig } from '../config.js';
 

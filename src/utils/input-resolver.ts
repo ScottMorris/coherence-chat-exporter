@@ -9,11 +9,13 @@ export interface ExportData {
 
 export class InputResolver {
   async resolve(inputPath: string): Promise<ExportData> {
-    if (!fs.existsSync(inputPath)) {
-      throw new Error(`Input path not found: ${inputPath}`);
+    try {
+        await fs.promises.access(inputPath);
+    } catch {
+        throw new Error(`Input path not found: ${inputPath}`);
     }
 
-    const stats = fs.statSync(inputPath);
+    const stats = await fs.promises.stat(inputPath);
 
     if (stats.isDirectory()) {
       return this.resolveDirectory(inputPath);
@@ -26,62 +28,83 @@ export class InputResolver {
     }
   }
 
-  private resolveDirectory(dirPath: string): ExportData {
+  private async resolveDirectory(dirPath: string): Promise<ExportData> {
     const convPath = path.join(dirPath, 'conversations.json');
-    if (!fs.existsSync(convPath)) {
-      throw new Error(`conversations.json not found in directory: ${dirPath}`);
+    try {
+        await fs.promises.access(convPath);
+    } catch {
+        throw new Error(`conversations.json not found in directory: ${dirPath}`);
     }
 
-    const conversations = this.readJson(convPath);
+    const conversations = await this.readJson(convPath);
 
     let projects;
     const projPath = path.join(dirPath, 'projects.json');
-    if (fs.existsSync(projPath)) {
-      projects = this.readJson(projPath);
+    try {
+        await fs.promises.access(projPath);
+        projects = await this.readJson(projPath);
+    } catch {
+        // projects.json is optional
     }
 
     return { conversations, projects };
   }
 
-  private resolveFile(filePath: string): ExportData {
+  private async resolveFile(filePath: string): Promise<ExportData> {
     // If user points directly to a JSON file, assume it is conversations.json
     // For Claude, this means projects might be missed unless they are in the same dir
-    const conversations = this.readJson(filePath);
+    const conversations = await this.readJson(filePath);
 
     let projects;
     const dir = path.dirname(filePath);
     const projPath = path.join(dir, 'projects.json');
 
     // Opportunistically check for projects.json next to the file
-    if (fs.existsSync(projPath)) {
-      projects = this.readJson(projPath);
+    try {
+        await fs.promises.access(projPath);
+        projects = await this.readJson(projPath);
+    } catch {
+        // projects.json is optional
     }
 
     return { conversations, projects };
   }
 
-  private resolveZip(zipPath: string): ExportData {
-    const zip = new AdmZip(zipPath);
-    const zipEntries = zip.getEntries();
+  private async resolveZip(zipPath: string): Promise<ExportData> {
+    // AdmZip is synchronous only for constructor.
+    // It has a readFileAsync but it takes a callback.
+    // For simpler extraction, standard sync getEntries is common unless large files.
+    // However, since we are doing async refactor, let's wrap what we can.
+    // AdmZip is primarily sync.
 
-    const convEntry = zipEntries.find(entry => entry.entryName.endsWith('conversations.json'));
-    if (!convEntry) {
-      throw new Error('conversations.json not found in zip archive');
-    }
+    return new Promise((resolve, reject) => {
+        try {
+            const zip = new AdmZip(zipPath);
+            const zipEntries = zip.getEntries();
 
-    const conversations = JSON.parse(convEntry.getData().toString('utf8'));
+            const convEntry = zipEntries.find(entry => entry.entryName.endsWith('conversations.json'));
+            if (!convEntry) {
+                reject(new Error('conversations.json not found in zip archive'));
+                return;
+            }
 
-    let projects;
-    const projEntry = zipEntries.find(entry => entry.entryName.endsWith('projects.json'));
-    if (projEntry) {
-      projects = JSON.parse(projEntry.getData().toString('utf8'));
-    }
+            const conversations = JSON.parse(convEntry.getData().toString('utf8'));
 
-    return { conversations, projects };
+            let projects;
+            const projEntry = zipEntries.find(entry => entry.entryName.endsWith('projects.json'));
+            if (projEntry) {
+                projects = JSON.parse(projEntry.getData().toString('utf8'));
+            }
+
+            resolve({ conversations, projects });
+        } catch (e) {
+            reject(e);
+        }
+    });
   }
 
-  private readJson(path: string): any {
-    const content = fs.readFileSync(path, 'utf-8');
+  private async readJson(path: string): Promise<any> {
+    const content = await fs.promises.readFile(path, 'utf-8');
     try {
       return JSON.parse(content);
     } catch (e) {

@@ -1,7 +1,7 @@
 import { ConversationTagger } from './classifier';
 
 // Mock the pipeline function
-jest.mock('@xenova/transformers', () => ({
+jest.mock('@huggingface/transformers', () => ({
   pipeline: jest.fn().mockImplementation(() => {
     return async (text: string, categories: string[]) => {
       // Return dummy scores

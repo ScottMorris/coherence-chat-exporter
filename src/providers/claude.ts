@@ -29,32 +29,33 @@ interface Project {
 export class ClaudeProvider implements Provider {
   name = 'Claude';
 
-  async normalize(data: any): Promise<Conversation[]> {
+  async normalize<T = any>(data: T): Promise<Conversation[]> {
     let conversationsData: ClaudeConversation[] = [];
     let projectsData: Project[] = [];
+    const typedData = data as any;
 
     // 'data' is now expected to be either the resolved ExportData object
     // OR (legacy) a direct array or object for testing
 
     // Normalize if 'conversations' property is the wrapper object { conversations: [] }
-    if (data.conversations && !Array.isArray(data.conversations) && data.conversations.conversations) {
+    if (typedData.conversations && !Array.isArray(typedData.conversations) && typedData.conversations.conversations) {
         // This handles case where input resolver returned { conversations: { conversations: [...] } }
-        data.conversations = data.conversations.conversations;
+        typedData.conversations = typedData.conversations.conversations;
     }
 
-    if (data.conversations) {
+    if (typedData.conversations) {
         // Handle wrapped object (ExportData or raw export)
-        const rawConv = data.conversations;
+        const rawConv = typedData.conversations;
 
         if (Array.isArray(rawConv)) {
             conversationsData = rawConv;
         }
 
-        if (data.projects && Array.isArray(data.projects)) {
-            projectsData = data.projects;
+        if (typedData.projects && Array.isArray(typedData.projects)) {
+            projectsData = typedData.projects;
         }
-    } else if (Array.isArray(data)) {
-        conversationsData = data;
+    } else if (Array.isArray(typedData)) {
+        conversationsData = typedData;
     }
 
     const projectMap = new Map<string, string>();

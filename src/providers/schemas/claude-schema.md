@@ -45,13 +45,45 @@ interface Project {
 }
 
 interface Memory {
-  // Structure TBD - can extract from memories.json
+    conversations_memory: string;
+    project_memories: { [key: string]: string };
+    account_uuid: string;
 }
 
 interface User {
-  // Structure TBD - can extract from users.json
+    uuid: string;
+    full_name: string;
+    email_address: string;
+    verified_phone_number: string | null;
 }
 ```
 
 ## Sample Data
-(Anonymized example would go here)
+
+### Memories
+
+```json
+[
+  {
+    "conversations_memory": "markdown string of memory text",
+    "project_memories": {
+      "019a5b6e-d1b2-77cd-b85e-ed252b55f9b3": "markdown string of memory text",
+      "019aa7ba-e917-7783-8525-5aa5f5b7cff0": "markdown string of memory text"
+    },
+    "account_uuid": "7b08e9b7-54ef-482e-8235-964e144a5aa9"
+  }
+]
+```
+
+### Users
+
+```json
+[
+  {
+    "uuid": "7b08e9b7-54ef-482e-8235-964e144a5aa9",
+    "full_name": "User's Name",
+    "email_address": "email@domain.com",
+    "verified_phone_number": null
+  }
+]
+```
