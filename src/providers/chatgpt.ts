@@ -24,19 +24,18 @@ interface MessageNode {
 export class ChatGPTProvider implements Provider {
   name = 'ChatGPT';
 
-  async normalize<T = any>(data: T): Promise<Conversation[]> {
+  async normalize(data: any): Promise<Conversation[]> {
     let conversationsData: ChatGPTConversation[] = [];
-    const typedData = data as any;
 
     // data can be:
     // 1. Array of conversations (direct from JSON parse)
     // 2. ExportData object { conversations: ... }
 
-    if (Array.isArray(typedData)) {
-        conversationsData = typedData;
-    } else if (typedData && typedData.conversations) {
-        if (Array.isArray(typedData.conversations)) {
-            conversationsData = typedData.conversations;
+    if (Array.isArray(data)) {
+        conversationsData = data;
+    } else if (data && data.conversations) {
+        if (Array.isArray(data.conversations)) {
+            conversationsData = data.conversations;
         }
     }
 
