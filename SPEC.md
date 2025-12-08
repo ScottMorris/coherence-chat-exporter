@@ -348,6 +348,16 @@ class ExportPipeline {
 }
 ```
 
+### 7. Colour Palette
+
+The TUI uses a specific set of standard terminal colours to ensure readability and consistency:
+
+*   **Cyan**: Primary brand colour, headers, and active selection indicators (`>`).
+*   **Green**: Success messages, confirmation, and selected checkbox states (`[x]`).
+*   **Yellow**: Warnings, secondary highlights, and borders for preview/detail views.
+*   **Gray/Dim**: Metadata (dates, counts), unselected checkbox states (`[ ]`), and borders for inactive areas.
+*   **White**: Standard text content.
+
 ## Technical Stack
 
 **Core:**

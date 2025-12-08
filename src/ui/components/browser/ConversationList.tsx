@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Box, Text, useInput } from 'ink';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Box, Text, useInput, useStdout } from 'ink';
 import { Conversation } from '../../../providers/types.js';
 
 interface ConversationListProps {
@@ -12,8 +12,6 @@ interface ConversationListProps {
   onExport: () => void;
 }
 
-const ITEMS_PER_PAGE = 10;
-
 export const ConversationList: React.FC<ConversationListProps> = ({
   conversations,
   projectName,
@@ -23,8 +21,23 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   onBack,
   onExport
 }) => {
+  const { stdout } = useStdout();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [page, setPage] = useState(0);
+  const [terminalRows, setTerminalRows] = useState(stdout?.rows || 24);
+
+  useEffect(() => {
+    if (!stdout) return;
+    const onResize = () => setTerminalRows(stdout.rows);
+    stdout.on('resize', onResize);
+    return () => {
+      stdout.off('resize', onResize);
+    };
+  }, [stdout]);
+
+  // Dynamic calculation of items per page based on terminal height
+  // Header (~5 lines) + Footer (~3 lines) + Padding (~2 lines) = ~10 lines overhead
+  const itemsPerPage = Math.max(5, terminalRows - 12);
 
   // Filter conversations by project
   const filteredConversations = useMemo(() => {
@@ -32,11 +45,11 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     return conversations.filter(c => c.project_name === projectName);
   }, [conversations, projectName]);
 
-  const totalPages = Math.ceil(filteredConversations.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredConversations.length / itemsPerPage);
   const currentItems = useMemo(() => {
-    const start = page * ITEMS_PER_PAGE;
-    return filteredConversations.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredConversations, page]);
+    const start = page * itemsPerPage;
+    return filteredConversations.slice(start, start + itemsPerPage);
+  }, [filteredConversations, page, itemsPerPage]);
 
   useInput((input, key) => {
     if (key.upArrow) {

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Box, Text, useInput } from 'ink';
+import React, { useState, useEffect } from 'react';
+import { Box, Text, useInput, useStdout } from 'ink';
 import { Conversation } from '../../../providers/types.js';
 
 interface ConversationPreviewProps {
@@ -8,8 +8,21 @@ interface ConversationPreviewProps {
 }
 
 export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conversation, onBack }) => {
+  const { stdout } = useStdout();
   const [scrollOffset, setScrollOffset] = useState(0);
-  const VIEW_HEIGHT = 15; // Number of lines to show at once
+  const [terminalRows, setTerminalRows] = useState(stdout?.rows || 24);
+
+  useEffect(() => {
+    if (!stdout) return;
+    const onResize = () => setTerminalRows(stdout.rows);
+    stdout.on('resize', onResize);
+    return () => {
+      stdout.off('resize', onResize);
+    };
+  }, [stdout]);
+
+  // Header (~5) + Footer (~3) + Padding (~2) = ~10 overhead
+  const viewHeight = Math.max(5, terminalRows - 10);
 
   // Simple flatten of messages to lines for scrolling
   // In a real TUI this is complex, we'll do a simplified line-based approach
@@ -32,14 +45,14 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
       setScrollOffset(prev => Math.max(0, prev - 1));
     }
     if (key.downArrow) {
-      setScrollOffset(prev => Math.min(Math.max(0, lines.length - VIEW_HEIGHT), prev + 1));
+      setScrollOffset(prev => Math.min(Math.max(0, lines.length - viewHeight), prev + 1));
     }
     if (key.escape || key.backspace) {
       onBack();
     }
   });
 
-  const visibleLines = lines.slice(scrollOffset, scrollOffset + VIEW_HEIGHT);
+  const visibleLines = lines.slice(scrollOffset, scrollOffset + viewHeight);
 
   return (
     <Box flexDirection="column" borderStyle="round" borderColor="yellow" padding={1} width="100%">
@@ -47,7 +60,7 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
           <Text bold>{conversation.title}</Text>
       </Box>
 
-      <Box flexDirection="column" height={VIEW_HEIGHT}>
+      <Box flexDirection="column" height={viewHeight}>
         {visibleLines.map((line, idx) => (
           <Text key={idx} wrap="truncate-end">{line}</Text>
         ))}

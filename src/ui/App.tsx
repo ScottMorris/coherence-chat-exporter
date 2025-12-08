@@ -20,9 +20,14 @@ import { Conversation } from '../providers/types.js';
 
 type View = 'menu' | 'select-provider' | 'input-path' | 'loading' | 'browser' | 'exporting' | 'complete' | 'tagging-setup' | 'settings';
 
+enum AppMode {
+  Export = 'export',
+  Browse = 'browse'
+}
+
 export const App = () => {
   const [view, setView] = useState<View>('menu');
-  const [mode, setMode] = useState<'export' | 'browse'>('export'); // Track if we are in direct export or browse mode
+  const [mode, setMode] = useState<AppMode>(AppMode.Export); // Track if we are in direct export or browse mode
   const [providerName, setProviderName] = useState<'claude' | 'chatgpt' | null>(null);
   const [status, setStatus] = useState('');
   const [exportCount, setExportCount] = useState(0);
@@ -38,11 +43,11 @@ export const App = () => {
   const handleMenuSelect = (value: string) => {
     if (value === 'exit') process.exit(0);
     if (value === 'source') {
-        setMode('export');
+        setMode(AppMode.Export);
         setView('select-provider');
     }
     if (value === 'browse') {
-        setMode('browse');
+        setMode(AppMode.Browse);
         setView('select-provider');
     }
     if (value === 'tagging') setView('tagging-setup');
@@ -55,7 +60,7 @@ export const App = () => {
   };
 
   const handlePathSubmit = async (pathStr: string) => {
-      if (mode === 'export') {
+      if (mode === AppMode.Export) {
         setView('exporting');
         setStatus('Initializing export...');
         try {
