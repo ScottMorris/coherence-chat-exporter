@@ -28,6 +28,12 @@ jobs:
       - name: Create Bundle
         run: node scripts/bundle.js
 
+      - name: Create AppImage (Linux)
+        if: runner.os == 'Linux'
+        run: |
+           sudo apt-get install -y fuse libfuse2
+           node scripts/build-appimage.js
+
       - name: Create NPM Tarball
         run: npm pack
 
@@ -35,6 +41,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            dist/coherence.bundle.js
+            dist/coherence.bundle.mjs
+            out/*.AppImage
             *.tgz
           generate_release_notes: true

@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs';
 
 const distDir = 'dist';
-const bundleFile = path.join(distDir, 'coherence.bundle.js');
+const bundleFile = path.join(distDir, 'coherence.bundle.mjs');
 
 if (!fs.existsSync(distDir)) {
     fs.mkdirSync(distDir);

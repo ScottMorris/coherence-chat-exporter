@@ -94,7 +94,6 @@ _coherence() {
     esac
 }
 
-_coherence "$@"
 `;
     } else if (shell === 'fish') {
          return `
