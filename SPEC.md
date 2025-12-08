@@ -1,4 +1,4 @@
-# Coherence Chat Archive Tool - Specification v2
+# Coherence Chat Archive Tool - Specification
 
 ## Overview
 A CLI tool with TUI (using Ink) for exporting Claude/ChatGPT conversations into organized markdown journal entries, with optional AI-powered tagging via Transformers.js.
