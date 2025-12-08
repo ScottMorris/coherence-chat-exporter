@@ -105,6 +105,69 @@ Configuration is stored in `~/.config/chat-archive/config.json`. You can edit th
 }
 ```
 
+## Demo & Samples
+
+### Interactive TUI
+The tool features a clean, keyboard-navigable terminal interface.
+
+**Main Menu**
+```
+ Chat Archive Tool
+
+ ❯ 📦 Select Export Source
+   📂 Browse & Export
+   🏷️  Configure Tagging
+   ⚙️  Settings
+   🚪 Exit
+```
+
+**AI Tagging Configuration**
+```
+ AI Tagging Configuration
+
+ Automatically generate semantic tags for your conversations using a local AI model.
+ Note: First run will download ~25MB model.
+
+ ❯ Enable AI Tagging: [OFF]
+   🔙 Back
+```
+
+### Sample Output
+Conversations are exported to Markdown with YAML frontmatter containing metadata.
+
+**Input (`samples/claude_mock.json`)**
+```json
+{
+  "conversations": [
+    {
+      "uuid": "550e8400-...",
+      "name": "Designing the Chat Archive Tool",
+      "chat_messages": [...]
+    }
+  ]
+}
+```
+
+**Output (`2023/10-october/27-designing-the-chat-archive-tool.md`)**
+```markdown
+---
+title: Designing the Chat Archive Tool
+date: '2023-10-27'
+updated: '2023-10-27'
+uuid: 550e8400-e29b-41d4-a716-446655440000
+tags: ["programming", "AI", "tooling"]
+---
+### HUMAN (2023-10-27T10:01:00.000Z)
+
+I want to build a CLI tool to archive my Claude conversations. It should be a TUI using Ink.
+
+---
+
+### ASSISTANT (2023-10-27T10:02:00.000Z)
+
+That sounds like a great project! Using Ink for the TUI...
+```
+
 ## AI Tagging
 
 The tool uses the `Xenova/mobilebert-uncased-mnli` model (via `@huggingface/transformers`) for zero-shot classification. On the first run with tagging enabled, it will download the quantized model (~25MB) to your local cache.

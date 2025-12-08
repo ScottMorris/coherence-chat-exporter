@@ -1,0 +1,8 @@
+
+ AI Tagging Configuration
+
+ Automatically generate semantic tags for your conversations using a local AI model.
+ Note: First run will download ~25MB model.
+
+ ❯ Enable AI Tagging: [OFF]
+   🔙 Back

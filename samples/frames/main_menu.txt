@@ -1,0 +1,8 @@
+
+ Chat Archive Tool
+
+ ❯ 📦 Select Export Source
+   📂 Browse & Export
+   🏷️  Configure Tagging
+   ⚙️  Settings
+   🚪 Exit
