@@ -1,0 +1,75 @@
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "title": "Designing the Chat Archive Tool",
+    "create_time": 1761559200,
+    "update_time": 1761564600,
+    "current_node": "msg_004",
+    "mapping": {
+      "msg_001": {
+        "id": "msg_001",
+        "message": {
+          "id": "msg_001",
+          "author": { "role": "user" },
+          "content": { "content_type": "text", "parts": ["I want to build a CLI tool to archive my Claude conversations. It should be a TUI using Ink."] },
+          "create_time": 1761559260
+        },
+        "parent": null,
+        "children": ["msg_002"]
+      },
+      "msg_002": {
+        "id": "msg_002",
+        "message": {
+          "id": "msg_002",
+          "author": { "role": "assistant" },
+          "content": { "content_type": "text", "parts": ["That sounds like a great project! Using Ink for the TUI (Terminal User Interface) will give you a nice React-based development experience for the CLI. What specific features are you planning?"] },
+          "create_time": 1761559320
+        },
+        "parent": "msg_001",
+        "children": ["msg_003"]
+      },
+      "msg_003": {
+        "id": "msg_003",
+        "message": {
+          "id": "msg_003",
+          "author": { "role": "user" },
+          "content": { "content_type": "text", "parts": ["I want to include AI semantic tagging using a local model, maybe mobilebert via @huggingface/transformers."] },
+          "create_time": 1761559500
+        },
+        "parent": "msg_002",
+        "children": ["msg_004"]
+      },
+      "msg_004": {
+        "id": "msg_004",
+        "message": {
+          "id": "msg_004",
+          "author": { "role": "assistant" },
+          "content": { "content_type": "text", "parts": ["Integrating local AI tagging is a powerful addition. Since you're using Node.js, `transformers.js` is the perfect library for this. MobileBERT is lightweight enough to run on most consumer hardware without significant latency."] },
+          "create_time": 1761559560
+        },
+        "parent": "msg_003",
+        "children": []
+      }
+    }
+  },
+  {
+    "id": "660e8400-e29b-41d4-a716-446655440000",
+    "title": "Weekend Hike Planning",
+    "create_time": 1762333200,
+    "update_time": 1762334100,
+    "current_node": "msg_101",
+    "mapping": {
+      "msg_101": {
+        "id": "msg_101",
+        "message": {
+          "id": "msg_101",
+          "author": { "role": "user" },
+          "content": { "content_type": "text", "parts": ["Any suggestions for a moderate hike near the city?"] },
+          "create_time": 1762333260
+        },
+        "parent": null,
+        "children": []
+      }
+    }
+  }
+]
