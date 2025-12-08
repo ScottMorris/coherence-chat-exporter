@@ -11,6 +11,7 @@ Includes optional **AI Semantic Tagging** using a local BERT model to automatica
 -   **TUI & CLI**:
     -   Interactive Terminal UI (Ink-based) for easy navigation.
     -   **Conversation Browser**: Preview and select specific conversations to export.
+    -   **Stats Dashboard**: Visualize conversation metrics (count, volume, timeline) with ASCII charts.
     -   Headless CLI commands for scripting and automation.
 -   **Structured Export**:
     -   Converts conversations to clean Markdown.
@@ -75,6 +76,18 @@ The browser allows you to selectively export conversations.
     -   `Space`: Toggle selection.
     -   `Enter`: Preview conversation.
     -   `e`: Export selected items.
+    -   `s`: View Stats Dashboard.
+
+### Stats Dashboard
+
+Analyze your export data before processing.
+
+1.  Select **Stats Dashboard** from the Main Menu.
+2.  Or press `s` while in the Conversation Browser.
+3.  View metrics like:
+    -   Total Conversations/Messages
+    -   Activity over Time
+    -   Top Projects & Tags
 
 ### CLI Mode
 
