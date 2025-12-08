@@ -135,7 +135,7 @@ The tool features a clean, keyboard-navigable terminal interface.
 ### Sample Output
 Conversations are exported to Markdown with YAML frontmatter containing metadata.
 
-**Input (`samples/claude_mock.json`)**
+**Input (`samples/claude_conversations.json`)**
 ```json
 {
   "conversations": [
