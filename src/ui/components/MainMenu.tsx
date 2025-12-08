@@ -10,6 +10,7 @@ export const MainMenu: React.FC<Props> = ({ onSelect }) => {
   const items = [
     { label: '📦 Select Export Source', value: 'source' },
     { label: '📂 Browse & Export', value: 'browse' },
+    { label: '📊 Stats Dashboard', value: 'stats' },
     { label: '🏷️  Configure Tagging', value: 'tagging' },
     { label: '⚙️  Settings', value: 'settings' },
     { label: '🚪 Exit', value: 'exit' }

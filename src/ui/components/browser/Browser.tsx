@@ -11,9 +11,10 @@ interface BrowserProps {
   conversations: Conversation[];
   onExport: (selectedConversations: Conversation[]) => void;
   onBack: () => void;
+  onViewStats?: () => void;
 }
 
-export const Browser: React.FC<BrowserProps> = ({ conversations, onExport, onBack }) => {
+export const Browser: React.FC<BrowserProps> = ({ conversations, onExport, onBack, onViewStats }) => {
   const [view, setView] = useState<BrowserView>('projects');
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [selectedUuids, setSelectedUuids] = useState<string[]>([]);
@@ -36,6 +37,7 @@ export const Browser: React.FC<BrowserProps> = ({ conversations, onExport, onBac
                 setView('conversations');
             }}
             onBack={onBack}
+            onViewStats={onViewStats}
         />
       )}
 
@@ -51,6 +53,7 @@ export const Browser: React.FC<BrowserProps> = ({ conversations, onExport, onBac
             }}
             onExport={handleExportTrigger}
             onBack={() => setView('projects')}
+            onViewStats={onViewStats}
         />
       )}
 
