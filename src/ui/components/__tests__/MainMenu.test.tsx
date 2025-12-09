@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from 'ink-testing-library';
-import { MainMenu } from '../MainMenu';
+import { MainMenu } from '../MainMenu.js';
 
 // We are not mocking figlet/gradient-string because getting ESM mocks to work
 // with ts-jest can be flaky. Instead, we verify the output contains the
