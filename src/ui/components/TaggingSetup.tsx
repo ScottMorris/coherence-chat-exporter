@@ -17,24 +17,16 @@ export const TaggingSetup: React.FC<Props> = ({ onBack }) => {
     setIsDownloading(true);
     setDownloadProgress(0);
 
-    // Simulate progress while waiting for the promise
-    const interval = setInterval(() => {
-        setDownloadProgress(prev => {
-            if (prev >= 95) return 95;
-            return prev + 2;
-        });
-    }, 100);
-
     try {
         const tagger = new ConversationTagger();
         // This will trigger the download if the model is not cached
-        await tagger.initialize();
+        await tagger.initialize((progress) => {
+            setDownloadProgress(progress);
+        });
 
-        clearInterval(interval);
         setDownloadProgress(100);
         setTimeout(() => setIsDownloading(false), 1000);
     } catch (error) {
-        clearInterval(interval);
         setIsDownloading(false);
         // In a real TUI we'd show an error message here
     }
