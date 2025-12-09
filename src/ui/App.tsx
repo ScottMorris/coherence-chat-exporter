@@ -43,6 +43,7 @@ enum MenuOption {
   Source = 'source',
   Browse = 'browse',
   Stats = 'stats',
+  Search = 'search',
   Tagging = 'tagging',
   Settings = 'settings',
   Exit = 'exit'
@@ -50,9 +51,10 @@ enum MenuOption {
 
 interface AppProps {
   onExit?: () => void;
+  initialPath?: string;
 }
 
-export const App: React.FC<AppProps> = ({ onExit }) => {
+export const App: React.FC<AppProps> = ({ onExit, initialPath }) => {
   const [view, setView] = useState<AppView>(AppView.Menu);
   const [mode, setMode] = useState<AppMode>(AppMode.Export); // Track if we are in direct export or browse mode
   const [providerName, setProviderName] = useState<'claude' | 'chatgpt' | null>(null);
@@ -67,10 +69,72 @@ export const App: React.FC<AppProps> = ({ onExit }) => {
       configManager.loadConfig();
   }, []);
 
+  // Handle initial path from CLI
+  useEffect(() => {
+    if (initialPath) {
+      setMode(AppMode.Browse);
+      setView(AppView.Loading);
+      setStatus(`Loading from ${initialPath}...`);
+      autoDetectAndLoad(initialPath);
+    }
+  }, [initialPath]);
+
+  const autoDetectAndLoad = async (pathStr: string) => {
+     try {
+       const resolver = new InputResolver();
+       setStatus('Resolving input...');
+       const rawData = await resolver.resolve(pathStr);
+
+       // Try Claude first
+       try {
+         setStatus('Attempting to parse as Claude...');
+         const claudeProvider = new ClaudeProvider();
+         const convs = await claudeProvider.normalize(rawData);
+         if (convs.length > 0) {
+           setProviderName('claude');
+           setLoadedConversations(convs);
+           setView(AppView.Browser);
+           return;
+         }
+       } catch (e) {
+         // Ignore and try next
+       }
+
+       // Try ChatGPT
+       try {
+         setStatus('Attempting to parse as ChatGPT...');
+         const chatgptProvider = new ChatGPTProvider();
+         const convs = await chatgptProvider.normalize(rawData);
+         if (convs.length > 0) {
+           setProviderName('chatgpt');
+           setLoadedConversations(convs);
+           setView(AppView.Browser);
+           return;
+         }
+       } catch (e) {
+         // Ignore
+       }
+
+       throw new Error('Could not auto-detect provider or no conversations found.');
+
+     } catch (e: any) {
+       setStatus(`Error: ${e.message}`);
+       // Give user a moment to see error then go to menu
+       setTimeout(() => setView(AppView.Menu), 2000);
+     }
+  };
+
   const handleMenuSelect = (value: string) => {
     if (value === MenuOption.Exit) {
         if (onExit) onExit();
         else process.exit(0);
+        return;
+    }
+
+    // If Browse or Search is selected but no data is loaded, redirect to Source selection
+    if ((value === MenuOption.Browse || value === MenuOption.Search) && loadedConversations.length === 0) {
+        setMode(AppMode.Browse); // Intend to browse after loading
+        setView(AppView.SelectProvider);
         return;
     }
     if (value === MenuOption.Source) {
@@ -78,8 +142,12 @@ export const App: React.FC<AppProps> = ({ onExit }) => {
         setView(AppView.SelectProvider);
     }
     if (value === MenuOption.Browse) {
-        setMode(AppMode.Browse);
-        setView(AppView.SelectProvider);
+        setView(AppView.Browser);
+    }
+    if (value === MenuOption.Search) {
+        // For now, go to Browser, but we might want to trigger search input directly?
+        // Plan says: "start by filtering the view by searching by titles" in Browser.
+        setView(AppView.Browser);
     }
     if (value === MenuOption.Stats) {
         setMode(AppMode.Stats);
@@ -188,7 +256,12 @@ export const App: React.FC<AppProps> = ({ onExit }) => {
 
   return (
     <FullScreenLayout>
-      {view === AppView.Menu && <MainMenu onSelect={handleMenuSelect} />}
+      {view === AppView.Menu && (
+        <MainMenu
+           onSelect={handleMenuSelect}
+           hasData={loadedConversations.length > 0}
+        />
+      )}
       {view === AppView.SelectProvider && (
           <ProviderSelect onSelect={handleProviderSelect} onBack={() => setView(AppView.Menu)} />
       )}

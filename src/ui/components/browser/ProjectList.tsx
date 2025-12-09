@@ -5,11 +5,12 @@ import { Conversation } from '../../../providers/types.js';
 interface ProjectListProps {
   conversations: Conversation[];
   onSelectProject: (projectName: string | null) => void;
+  onSearch: () => void;
   onBack: () => void;
   onViewStats?: () => void;
 }
 
-export const ProjectList: React.FC<ProjectListProps> = ({ conversations, onSelectProject, onBack, onViewStats }) => {
+export const ProjectList: React.FC<ProjectListProps> = ({ conversations, onSelectProject, onSearch, onBack, onViewStats }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   // Extract unique projects
@@ -39,6 +40,9 @@ export const ProjectList: React.FC<ProjectListProps> = ({ conversations, onSelec
     if (key.return) {
       onSelectProject(items[selectedIndex].value);
     }
+    if (input === 's') {
+        onSearch();
+    }
     if (key.escape || key.backspace) {
         onBack();
     }
@@ -58,8 +62,10 @@ export const ProjectList: React.FC<ProjectListProps> = ({ conversations, onSelec
           </Text>
         </Box>
       ))}
-      <Box marginTop={1}>
-        <Text color="gray">[Enter] Select  [s] Stats  [Esc] Back</Text>
+      <Box marginTop={1} borderStyle="single" borderColor="gray">
+          <Text>
+              <Text bold color="green">s</Text>: Search Content | <Text bold color="green">Esc</Text>: Back
+          </Text>
       </Box>
     </Box>
   );

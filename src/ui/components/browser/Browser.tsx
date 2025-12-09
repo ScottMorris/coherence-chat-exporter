@@ -3,9 +3,10 @@ import { Box } from 'ink';
 import { ProjectList } from './ProjectList.js';
 import { ConversationList } from './ConversationList.js';
 import { ConversationPreview } from './ConversationPreview.js';
+import { SearchResults } from './SearchResults.js';
 import { Conversation } from '../../../providers/types.js';
 
-type BrowserView = 'projects' | 'conversations' | 'preview';
+type BrowserView = 'projects' | 'conversations' | 'preview' | 'search';
 
 interface BrowserProps {
   conversations: Conversation[];
@@ -16,6 +17,7 @@ interface BrowserProps {
 
 export const Browser: React.FC<BrowserProps> = ({ conversations, onExport, onBack, onViewStats }) => {
   const [view, setView] = useState<BrowserView>('projects');
+  const [lastView, setLastView] = useState<BrowserView>('projects'); // Track where we came from
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [selectedUuids, setSelectedUuids] = useState<string[]>([]);
   const [previewConversation, setPreviewConversation] = useState<Conversation | null>(null);
@@ -36,6 +38,7 @@ export const Browser: React.FC<BrowserProps> = ({ conversations, onExport, onBac
                 setSelectedProject(project);
                 setView('conversations');
             }}
+            onSearch={() => setView('search')}
             onBack={onBack}
             onViewStats={onViewStats}
         />
@@ -49,6 +52,7 @@ export const Browser: React.FC<BrowserProps> = ({ conversations, onExport, onBac
             onSelectionChange={setSelectedUuids}
             onSelectConversation={(conv: Conversation) => {
                 setPreviewConversation(conv);
+                setLastView('conversations');
                 setView('preview');
             }}
             onExport={handleExportTrigger}
@@ -57,10 +61,22 @@ export const Browser: React.FC<BrowserProps> = ({ conversations, onExport, onBac
         />
       )}
 
+      {view === 'search' && (
+          <SearchResults
+             conversations={conversations}
+             onSelectConversation={(conv: Conversation) => {
+                 setPreviewConversation(conv);
+                 setLastView('search');
+                 setView('preview');
+             }}
+             onBack={() => setView('projects')}
+          />
+      )}
+
       {view === 'preview' && previewConversation && (
           <ConversationPreview
             conversation={previewConversation}
-            onBack={() => setView('conversations')}
+            onBack={() => setView(lastView)}
           />
       )}
     </Box>

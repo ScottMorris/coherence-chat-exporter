@@ -6,6 +6,7 @@ import gradient from 'gradient-string';
 
 interface Props {
   onSelect: (value: string) => void;
+  hasData?: boolean;
 }
 
 // A more dramatic ASCII brain (side view with convolutions)
@@ -24,7 +25,7 @@ const BRAIN_ASCII = `
 // Pinkish color from Noto Color Emoji brain
 const BRAIN_PINK = "#F48FB1";
 
-export const MainMenu: React.FC<Props> = ({ onSelect }) => {
+export const MainMenu: React.FC<Props> = ({ onSelect, hasData = false }) => {
   const { stdout } = useStdout();
   const width = stdout?.columns || 80;
 
@@ -39,9 +40,10 @@ export const MainMenu: React.FC<Props> = ({ onSelect }) => {
   }, []);
 
   const items = [
-    { label: '📦 Select Export Source', value: 'source' },
+    { label: hasData ? '📦 Load New Source' : '📦 Load Export Data (Start Here)', value: 'source' },
     { label: '📂 Browse & Export', value: 'browse' },
     { label: '📊 Stats Dashboard', value: 'stats' },
+    { label: '🔍 Search', value: 'search' },
     { label: '🏷️  Configure Tagging', value: 'tagging' },
     { label: '⚙️  Settings', value: 'settings' },
     { label: '🚪 Exit', value: 'exit' }
@@ -55,16 +57,38 @@ export const MainMenu: React.FC<Props> = ({ onSelect }) => {
 
   return (
     <Box flexDirection="column" padding={1}>
+      <Text bold color="cyan">Chat Archive Tool</Text>
       {/* Top Logo */}
       <Box marginBottom={1}>
         <Text>{logo}</Text>
+      {!hasData && (
+          <Box marginTop={1} borderStyle="single" borderColor="yellow">
+              <Text color="yellow">No data loaded. Please load an export file to begin.</Text>
+          </Box>
+      )}
       </Box>
 
       {/* Content Area */}
       <Box flexDirection="row">
         {/* Left Column: Menu */}
         <Box flexDirection="column" marginRight={4}>
-          <SelectInput items={items} onSelect={(item) => onSelect(item.value)} />
+          <SelectInput
+            items={items}
+            onSelect={(item) => onSelect(item.value)}
+            itemComponent={(props: any) => {
+                // Using any to avoid TS error on 'value'
+                const isActionRequiringData = ['browse', 'search'].includes(props.value);
+                const isDisabled = isActionRequiringData && !hasData;
+
+                return (
+                    <Text color={props.isSelected ? 'cyan' : (isDisabled ? 'gray' : 'white')}>
+                        {props.isSelected ? '> ' : '  '}
+                        {props.label}
+                        {isDisabled ? ' (Requires Data)' : ''}
+                    </Text>
+                );
+            }}
+        />
         </Box>
 
         {/* Right Column: Brain */}

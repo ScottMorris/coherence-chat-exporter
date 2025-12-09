@@ -38,6 +38,7 @@ program
   .option('--tag', 'Enable AI tagging')
   .option('--no-tag', 'Disable AI tagging')
   .action(async (options) => {
+    program.parse(process.argv);
     try {
         console.log(chalk.cyan('Starting export...'));
 
@@ -87,21 +88,28 @@ program
     }
   });
 
-// Handle interactive mode if no args provided
-if (process.argv.length === 2) {
-    // Set terminal title
-    process.stdout.write('\x1b]0;Coherence Chat Exporter\x07');
-    // Enter alternate screen buffer
-    process.stdout.write('\x1b[?1049h');
+// Handle interactive mode (default)
+// We use a custom action on the main program to catch cases where no sub-command is used
+program
+    .argument('[path]', 'Path to export file or directory to load in interactive mode')
+    .action(async (path) => {
+        // Set terminal title
+        process.stdout.write('\x1b]0;Coherence Chat Exporter\x07');
+        // Enter alternate screen buffer
+        process.stdout.write('\x1b[?1049h');
 
-    const app = render(React.createElement(App, {
-        onExit: () => app.unmount()
-    }));
+        // If the user runs `coherence`, path is undefined.
+        // If the user runs `coherence myfile.zip`, path is "myfile.zip".
+        const app = render(React.createElement(App, { 
+            initialPath: path,
+            onExit: () => {
+                // Exit alternate screen buffer
+                process.stdout.write('\x1b[?1049l');
+                app.unmount();
+                process.exit(0);
+            }
+        }));
 
-    await app.waitUntilExit();
+        await app.waitUntilExit();
+    });
 
-    // Exit alternate screen buffer
-    process.stdout.write('\x1b[?1049l');
-} else {
-    program.parse(process.argv);
-}
