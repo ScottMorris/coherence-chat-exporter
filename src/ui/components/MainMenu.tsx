@@ -8,15 +8,21 @@ interface Props {
   onSelect: (value: string) => void;
 }
 
-// A simple ASCII brain inspired by Noto Emoji style (side view)
-// Using a pinkish color hex: #FF9999 or similar
+// A more dramatic ASCII brain (side view with convolutions)
 const BRAIN_ASCII = `
-      , - - ,
-    / ' ' \` \\
-   | ' ' ' ' |
-    \\ ' ' ' /
-      \` - - \`
+      _---~~(~~-._
+    _{        )   )
+   (   ) -~~- ( ,-' )_
+  (  \`-,_..\`.,_--_ '_,)
+  (_-  _  ~_-~~~~\`,  ,' )
+    \`~ -^(    __;-,((()))
+          ~~~~ {_ -_(())
+                 \`\\  }
+                   { }
 `;
+
+// Pinkish color from Noto Color Emoji brain
+const BRAIN_PINK = "#F48FB1";
 
 export const MainMenu: React.FC<Props> = ({ onSelect }) => {
   const { stdout } = useStdout();
@@ -43,9 +49,9 @@ export const MainMenu: React.FC<Props> = ({ onSelect }) => {
 
   // Threshold to hide the brain if terminal is too narrow
   // Coherence logo is roughly ~55 chars wide.
-  // Menu is ~30 chars. Brain is ~15 chars.
-  // We'll hide brain if width < 75 just to be safe.
-  const showBrain = width >= 75;
+  // Menu is ~30 chars. New Brain is ~25 chars + margins.
+  // We'll bump the threshold to 85 to be safe.
+  const showBrain = width >= 85;
 
   return (
     <Box flexDirection="column" padding={1}>
@@ -64,8 +70,7 @@ export const MainMenu: React.FC<Props> = ({ onSelect }) => {
         {/* Right Column: Brain */}
         {showBrain && (
           <Box flexDirection="column" justifyContent="center">
-            {/* Using a Hex color closest to the pink brain emoji */}
-            <Text color="#F48FB1">{BRAIN_ASCII}</Text>
+            <Text color={BRAIN_PINK}>{BRAIN_ASCII}</Text>
           </Box>
         )}
       </Box>

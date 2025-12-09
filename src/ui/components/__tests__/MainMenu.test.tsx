@@ -25,9 +25,15 @@ describe('MainMenu', () => {
     expect(output).toContain('Exit');
   });
 
-  test('renders brain ASCII by default (assuming >75 width)', () => {
+  test('renders brain ASCII by default (assuming >85 width)', () => {
+     // Note: Default width in ink-testing-library might be small, but usually
+     // it defaults to a reasonable size or we can rely on what useStdout returns.
+     // If this fails, we might need to mock useStdout to force a width.
      const { lastFrame } = render(<MainMenu onSelect={() => {}} />);
      const output = lastFrame();
-     expect(output).toContain("/ ' ' ` \\");
+
+     // Check for distinctive part of the new "dramatic" brain
+     // "      _---~~(~~-._"
+     expect(output).toContain("_---~~(~~-._");
   });
 });
