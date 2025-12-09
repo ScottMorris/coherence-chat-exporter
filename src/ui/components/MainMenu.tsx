@@ -9,6 +9,12 @@ interface Props {
   hasData?: boolean;
 }
 
+interface ItemProps {
+    isSelected?: boolean;
+    label: string;
+    value: string;
+}
+
 // A more dramatic ASCII brain (side view with convolutions)
 const BRAIN_ASCII = `
       _---~~(~~-._
@@ -75,8 +81,7 @@ export const MainMenu: React.FC<Props> = ({ onSelect, hasData = false }) => {
           <SelectInput
             items={items}
             onSelect={(item) => onSelect(item.value)}
-            itemComponent={(props: any) => {
-                // Using any to avoid TS error on 'value'
+            itemComponent={(props: ItemProps) => {
                 const isActionRequiringData = ['browse', 'search', 'stats'].includes(props.value);
                 const isDisabled = isActionRequiringData && !hasData;
 
