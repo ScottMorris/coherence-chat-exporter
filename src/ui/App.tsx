@@ -11,6 +11,7 @@ import { ExportPreview } from './components/ExportPreview.js';
 import { StatsDashboard } from './components/stats/StatsDashboard.js';
 import { ClaudeProvider } from '../providers/claude.js';
 import { ChatGPTProvider } from '../providers/chatgpt.js';
+import { ProviderType } from '../providers/types.js';
 import { configManager } from '../config-manager.js';
 import { InputResolver } from '../utils/input-resolver.js';
 import { AppView, AppMode } from './types.js';
@@ -52,7 +53,7 @@ export const App = () => {
 
   const loadDataForBrowsing = async (pathStr: string) => {
     if (!providerName) return;
-    const provider = providerName === 'claude' ? new ClaudeProvider() : new ChatGPTProvider();
+    const provider = providerName === ProviderType.Claude ? new ClaudeProvider() : new ChatGPTProvider();
     const resolver = new InputResolver();
 
     setStatus('Resolving input...');
@@ -79,7 +80,7 @@ export const App = () => {
   const executeExport = async (data: any) => {
       if (!providerName) return;
       const config = configManager.getConfig();
-      const provider = providerName === 'claude' ? new ClaudeProvider() : new ChatGPTProvider();
+      const provider = providerName === ProviderType.Claude ? new ClaudeProvider() : new ChatGPTProvider();
 
       const results = await ExportManager.executeExport(data, {
           provider,

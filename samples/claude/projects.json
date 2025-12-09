@@ -1,0 +1,12 @@
+[
+  {
+    "uuid": "proj_001",
+    "name": "Coherence Dev",
+    "created_at": "2025-10-20T10:00:00.000000Z"
+  },
+  {
+    "uuid": "proj_002",
+    "name": "Personal",
+    "created_at": "2025-11-01T10:00:00.000000Z"
+  }
+]

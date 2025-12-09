@@ -6,6 +6,7 @@ import { Command } from 'commander';
 import { App } from './ui/App.js';
 import { ClaudeProvider } from './providers/claude.js';
 import { ChatGPTProvider } from './providers/chatgpt.js';
+import { ProviderType } from './providers/types.js';
 import { ExportManager } from './export/manager.js';
 import { configManager } from './config-manager.js';
 import { InputResolver } from './utils/input-resolver.js';
@@ -37,8 +38,8 @@ program
     try {
         console.log(chalk.cyan('Starting export...'));
 
-        const provider = options.provider === 'claude' ? new ClaudeProvider() :
-                         options.provider === 'chatgpt' ? new ChatGPTProvider() : null;
+        const provider = options.provider === ProviderType.Claude ? new ClaudeProvider() :
+                         options.provider === ProviderType.ChatGPT ? new ChatGPTProvider() : null;
 
         if (!provider) {
             console.error(chalk.red('Invalid provider. Use "claude" or "chatgpt".'));

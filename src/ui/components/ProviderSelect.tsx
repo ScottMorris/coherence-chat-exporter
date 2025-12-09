@@ -1,16 +1,17 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import SelectInput from 'ink-select-input';
+import { ProviderType } from '../../providers/types.js';
 
 interface Props {
-  onSelect: (provider: 'claude' | 'chatgpt') => void;
+  onSelect: (provider: ProviderType) => void;
   onBack: () => void;
 }
 
 export const ProviderSelect: React.FC<Props> = ({ onSelect, onBack }) => {
   const items = [
-    { label: 'Claude', value: 'claude' },
-    { label: 'ChatGPT', value: 'chatgpt' },
+    { label: 'Claude', value: ProviderType.Claude },
+    { label: 'ChatGPT', value: ProviderType.ChatGPT },
     { label: '🔙 Back', value: 'back' }
   ];
 
@@ -21,7 +22,7 @@ export const ProviderSelect: React.FC<Props> = ({ onSelect, onBack }) => {
         items={items}
         onSelect={(item) => {
             if (item.value === 'back') onBack();
-            else onSelect(item.value as 'claude' | 'chatgpt');
+            else onSelect(item.value as ProviderType);
         }}
       />
     </Box>

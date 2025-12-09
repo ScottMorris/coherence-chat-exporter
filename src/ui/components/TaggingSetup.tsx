@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Box, Text } from 'ink';
 import SelectInput from 'ink-select-input';
 import { defaultConfig } from '../../config.js';
+import { ConversationTagger } from '../../tagging/classifier.js';
 
 interface Props {
   onBack: () => void;
@@ -12,20 +13,31 @@ export const TaggingSetup: React.FC<Props> = ({ onBack }) => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
 
-  const startDownload = () => {
+  const startDownload = async () => {
     setIsDownloading(true);
     setDownloadProgress(0);
-    // Mock download simulation
-    let progress = 0;
+
+    // Simulate progress while waiting for the promise
     const interval = setInterval(() => {
-        progress += 5;
-        setDownloadProgress(progress);
-        if (progress >= 100) {
-            clearInterval(interval);
-            setIsDownloading(false);
-            // In real app, we would verify model presence here
-        }
+        setDownloadProgress(prev => {
+            if (prev >= 95) return 95;
+            return prev + 2;
+        });
     }, 100);
+
+    try {
+        const tagger = new ConversationTagger();
+        // This will trigger the download if the model is not cached
+        await tagger.initialize();
+
+        clearInterval(interval);
+        setDownloadProgress(100);
+        setTimeout(() => setIsDownloading(false), 1000);
+    } catch (error) {
+        clearInterval(interval);
+        setIsDownloading(false);
+        // In a real TUI we'd show an error message here
+    }
   };
 
   const handleSelect = (item: any) => {
@@ -49,7 +61,7 @@ export const TaggingSetup: React.FC<Props> = ({ onBack }) => {
                     [{'█'.repeat(Math.floor(downloadProgress / 5))}{'░'.repeat(20 - Math.floor(downloadProgress / 5))}] {downloadProgress}%
                 </Text>
               </Box>
-              <Text color="gray">Please wait...</Text>
+              <Text color="gray">This may take a minute...</Text>
           </Box>
       );
   }
