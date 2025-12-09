@@ -10,11 +10,14 @@ interface ConversationPreviewProps {
 export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conversation, onBack }) => {
   const { stdout } = useStdout();
   const [scrollOffset, setScrollOffset] = useState(0);
-  const [terminalRows, setTerminalRows] = useState(stdout?.rows || 24);
+  const [dims, setDims] = useState({
+    rows: stdout?.rows || 24,
+    columns: stdout?.columns || 80
+  });
 
   useEffect(() => {
     if (!stdout) return;
-    const onResize = () => setTerminalRows(stdout.rows);
+    const onResize = () => setDims({ rows: stdout.rows, columns: stdout.columns });
     stdout.on('resize', onResize);
     return () => {
       stdout.off('resize', onResize);
@@ -22,24 +25,31 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
   }, [stdout]);
 
   // Header (~5) + Footer (~3) + Padding (~2) = ~10 overhead
-  // Plus Global Layout Border (~2) + Layout safety (~3) = ~16 overhead
-  const viewHeight = Math.max(5, terminalRows - 16);
+  // Plus Global Layout Border (~2) = ~12 overhead
+  const viewHeight = Math.max(5, dims.rows - 12);
+  const maxWidth = Math.max(20, dims.columns - 6); // Border/Padding safety
 
-  // Simple flatten of messages to lines for scrolling
-  // In a real TUI this is complex, we'll do a simplified line-based approach
+  // Simple flatten of messages to lines for scrolling with wrapping
   const lines = React.useMemo(() => {
     const allLines: string[] = [];
     conversation.messages.forEach(msg => {
        const role = msg.sender.toUpperCase();
        const date = msg.created_at ? new Date(msg.created_at).toLocaleString() : '';
        allLines.push(`--- ${role} (${date}) ---`);
-       // Split message text by newlines
-       const textLines = msg.text.split('\n');
-       textLines.forEach(l => allLines.push(l));
+
+       msg.text.split('\n').forEach(line => {
+           if (line.length <= maxWidth) {
+               allLines.push(line);
+           } else {
+               // Wrap long lines
+               const chunks = line.match(new RegExp(`.{1,${maxWidth}}`, 'g')) || [line];
+               chunks.forEach(c => allLines.push(c));
+           }
+       });
        allLines.push(''); // Empty line between messages
     });
     return allLines;
-  }, [conversation]);
+  }, [conversation, maxWidth]);
 
   useInput((input, key) => {
     if (key.upArrow) {
@@ -63,7 +73,7 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
 
       <Box flexDirection="column" height={viewHeight}>
         {visibleLines.map((line, idx) => (
-          <Text key={idx} wrap="truncate-end">{line}</Text>
+          <Text key={idx}>{line}</Text>
         ))}
         {lines.length === 0 && <Text italic>No messages to display.</Text>}
       </Box>
