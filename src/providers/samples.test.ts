@@ -2,7 +2,10 @@ import { ClaudeProvider } from './claude';
 import { ChatGPTProvider } from './chatgpt';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const samplesDir = path.resolve(__dirname, '../../samples');
 
 describe('Sample Verification', () => {

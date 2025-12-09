@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Box, Text } from 'ink';
 import { MainMenu } from './components/MainMenu.js';
 import { ProviderSelect } from './components/ProviderSelect.js';
@@ -7,83 +7,28 @@ import { PathInput } from './components/PathInput.js';
 import { TaggingSetup } from './components/TaggingSetup.js';
 import { Settings } from './components/Settings.js';
 import { Browser } from './components/browser/Browser.js';
+import { ExportPreview } from './components/ExportPreview.js';
 import { StatsDashboard } from './components/stats/StatsDashboard.js';
 import { ClaudeProvider } from '../providers/claude.js';
 import { ChatGPTProvider } from '../providers/chatgpt.js';
-import { ExportPipeline } from '../export/pipeline.js';
-import { MarkdownTransformer } from '../export/transformer.js';
-import { Organizer } from '../export/organizer.js';
-import { Writer } from '../export/writer.js';
-import { ConversationTagger } from '../tagging/classifier.js';
 import { configManager } from '../config-manager.js';
 import { InputResolver } from '../utils/input-resolver.js';
-import { Conversation } from '../providers/types.js';
-
-enum AppView {
-  Menu = 'menu',
-  SelectProvider = 'select-provider',
-  InputPath = 'input-path',
-  Loading = 'loading',
-  Browser = 'browser',
-  Stats = 'stats',
-  Exporting = 'exporting',
-  Complete = 'complete',
-  TaggingSetup = 'tagging-setup',
-  Settings = 'settings'
-}
-
-enum AppMode {
-  Export = 'export',
-  Browse = 'browse',
-  Stats = 'stats'
-}
-
-enum MenuOption {
-  Source = 'source',
-  Browse = 'browse',
-  Stats = 'stats',
-  Tagging = 'tagging',
-  Settings = 'settings',
-  Exit = 'exit'
-}
+import { AppView, AppMode } from './types.js';
+import { useAppLogic } from './hooks/useAppLogic.js';
+import { ExportManager } from '../export/manager.js';
 
 export const App = () => {
-  const [view, setView] = useState<AppView>(AppView.Menu);
-  const [mode, setMode] = useState<AppMode>(AppMode.Export); // Track if we are in direct export or browse mode
-  const [providerName, setProviderName] = useState<'claude' | 'chatgpt' | null>(null);
-  const [status, setStatus] = useState('');
-  const [exportCount, setExportCount] = useState(0);
-
-  // Data state
-  const [loadedConversations, setLoadedConversations] = useState<Conversation[]>([]);
-
-  // Load config on mount
-  useEffect(() => {
-      configManager.loadConfig();
-  }, []);
-
-  const handleMenuSelect = (value: string) => {
-    if (value === MenuOption.Exit) process.exit(0);
-    if (value === MenuOption.Source) {
-        setMode(AppMode.Export);
-        setView(AppView.SelectProvider);
-    }
-    if (value === MenuOption.Browse) {
-        setMode(AppMode.Browse);
-        setView(AppView.SelectProvider);
-    }
-    if (value === MenuOption.Stats) {
-        setMode(AppMode.Stats);
-        setView(AppView.SelectProvider);
-    }
-    if (value === MenuOption.Tagging) setView(AppView.TaggingSetup);
-    if (value === MenuOption.Settings) setView(AppView.Settings);
-  };
-
-  const handleProviderSelect = (provider: 'claude' | 'chatgpt') => {
-    setProviderName(provider);
-    setView(AppView.InputPath);
-  };
+  const {
+      view, setView,
+      mode,
+      providerName,
+      status, setStatus,
+      exportCount, setExportCount,
+      loadedConversations, setLoadedConversations,
+      selectedForExport, setSelectedForExport,
+      handleMenuSelect,
+      handleProviderSelect
+  } = useAppLogic();
 
   const handlePathSubmit = async (pathStr: string) => {
       if (mode === AppMode.Export) {
@@ -95,7 +40,6 @@ export const App = () => {
             setStatus(`Error: ${e.message}`);
         }
       } else {
-          // Browse or Stats mode
           setView(AppView.Loading);
           setStatus('Loading conversations...');
           try {
@@ -129,56 +73,37 @@ export const App = () => {
       if (!providerName) return;
       const resolver = new InputResolver();
       const rawData = await resolver.resolve(pathStr);
-
-      // For direct export, we normalize inside the pipeline usually, but our pipeline expects normalized data now?
-      // Let's check pipeline.export signature. It expects "any".
-      // Actually, looking at previous code: pipeline.export(exportData...) where exportData is from resolver.
-      // So pipeline handles normalization internally if we pass raw data?
-      // Wait, pipeline.ts: export(data: any, ...) -> calls provider.normalize(data).
-      // So yes, we pass raw data to pipeline.export.
-
       await executeExport(rawData);
   };
 
-  const executeExport = async (data: any, specificConversations?: Conversation[]) => {
+  const executeExport = async (data: any) => {
       if (!providerName) return;
-
       const config = configManager.getConfig();
       const provider = providerName === 'claude' ? new ClaudeProvider() : new ChatGPTProvider();
-      const transformer = new MarkdownTransformer();
-      const organizer = new Organizer(config.outputPath);
-      const writer = new Writer();
 
-      let tagger: ConversationTagger | undefined;
-      if (config.tagging.enabled) {
-          setStatus('Loading AI Model...');
-          tagger = new ConversationTagger();
-          await tagger.initialize();
-      }
-
-      const pipeline = new ExportPipeline(provider, transformer, organizer, writer, tagger);
-
-      setStatus(`Exporting...`);
-
-      // pipeline.export now accepts specificConversations (Conversation[]) or raw data
-      const inputData = specificConversations || data;
-
-      const results = await pipeline.export(inputData, {
-          enableTagging: config.tagging.enabled,
-          tagThreshold: config.tagging.threshold
+      const results = await ExportManager.executeExport(data, {
+          provider,
+          taggingEnabled: config.tagging.enabled,
+          taggingThreshold: config.tagging.threshold,
+          outputPath: config.outputPath,
+          onStatusUpdate: setStatus
       });
 
       setExportCount(results.length);
       setView(AppView.Complete);
   };
 
-  const handleBrowserExport = async (selectedConversations: Conversation[]) => {
+  const handleBrowserExport = (selectedConversations: any[]) => {
       if (selectedConversations.length === 0) return;
-      setView(AppView.Exporting);
-      setStatus(`Exporting ${selectedConversations.length} conversations...`);
+      setSelectedForExport(selectedConversations);
+      setView(AppView.Preview);
+  };
 
+  const handleExportConfirm = async () => {
+      setView(AppView.Exporting);
+      setStatus(`Exporting ${selectedForExport.length} conversations...`);
       try {
-        await executeExport(null, selectedConversations);
+        await executeExport(selectedForExport);
       } catch (e: any) {
         setStatus(`Error: ${e.message}`);
       }
@@ -207,6 +132,16 @@ export const App = () => {
             onExport={handleBrowserExport}
             onBack={() => setView(AppView.Menu)}
             onViewStats={() => setView(AppView.Stats)}
+          />
+      )}
+
+      {view === AppView.Preview && (
+          <ExportPreview
+            selectedConversations={selectedForExport}
+            outputPath={config.outputPath}
+            taggingEnabled={config.tagging.enabled}
+            onConfirm={handleExportConfirm}
+            onBack={() => setView(AppView.Browser)}
           />
       )}
 
