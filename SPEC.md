@@ -103,7 +103,7 @@ interface MessageNode {
 ├── App.tsx              # Main app router
 ├── MainMenu.tsx         # Entry point
 ├── ProviderSelect.tsx   # Choose Claude/ChatGPT
-├── ProjectBrowser.tsx   # Browse projects
+├── ProjectList.tsx      # Browse projects
 ├── ConversationList.tsx # Browse conversations
 ├── ExportPreview.tsx    # Review before export
 ├── TaggingSetup.tsx     # Optional AI tagging setup
