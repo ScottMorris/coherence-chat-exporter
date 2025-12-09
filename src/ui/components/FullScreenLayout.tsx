@@ -29,7 +29,7 @@ export const FullScreenLayout: React.FC<FullScreenLayoutProps> = ({ children }) 
   return (
     <Box
       width={size.columns}
-      height={size.rows}
+      height={size.rows - 1}
       borderStyle="single"
       borderColor="cyan"
       flexDirection="column"
