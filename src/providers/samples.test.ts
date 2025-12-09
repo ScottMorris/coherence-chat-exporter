@@ -1,18 +1,21 @@
 import { ClaudeProvider } from './claude';
 import { ChatGPTProvider } from './chatgpt';
-import fs from 'fs';
+import { InputResolver } from '../utils/input-resolver.js';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const samplesDir = path.resolve(__dirname, '../../samples');
 
 describe('Sample Verification', () => {
     test('Claude mock conversations should parse correctly', async () => {
         const inputPath = path.join(samplesDir, 'claude/mock_conversations.json');
-        const rawData = fs.readFileSync(inputPath, 'utf-8');
-        const json = JSON.parse(rawData);
+        const resolver = new InputResolver();
+        const data = await resolver.resolve(inputPath);
 
         const provider = new ClaudeProvider();
-        const conversations = await provider.normalize(json);
+        const conversations = await provider.normalize(data);
 
         expect(conversations).toHaveLength(2);
 
@@ -21,6 +24,7 @@ describe('Sample Verification', () => {
         expect(c1?.messages).toHaveLength(4);
         expect(c1?.messages[0].text).toContain('I want to build a CLI tool');
         expect(c1?.created_at.toISOString()).toContain('2025-10-27');
+        expect(c1?.project_name).toBe('Coherence Dev');
 
         const c2 = conversations.find(c => c.title === 'Weekend Hike Planning');
         expect(c2).toBeDefined();
@@ -29,11 +33,11 @@ describe('Sample Verification', () => {
 
     test('ChatGPT mock conversations should parse correctly', async () => {
         const inputPath = path.join(samplesDir, 'chatgpt/mock_conversations.json');
-        const rawData = fs.readFileSync(inputPath, 'utf-8');
-        const json = JSON.parse(rawData);
+        const resolver = new InputResolver();
+        const data = await resolver.resolve(inputPath);
 
         const provider = new ChatGPTProvider();
-        const conversations = await provider.normalize(json);
+        const conversations = await provider.normalize(data);
 
         expect(conversations).toHaveLength(2);
 

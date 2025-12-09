@@ -12,12 +12,19 @@ export class ConversationTagger {
       this.threshold = threshold || defaultConfig.tagging.threshold;
   }
 
-  async initialize() {
+  async initialize(onProgress?: (progress: number) => void) {
     // Downloads model on first run
     // env.cacheDir = './.cache'; // Optional: local cache
     this.classifier = await pipeline(
       'zero-shot-classification',
-      defaultConfig.tagging.model
+      defaultConfig.tagging.model,
+      {
+        progress_callback: (data: any) => {
+          if (onProgress && data.status === 'progress' && typeof data.progress === 'number') {
+            onProgress(Math.round(data.progress));
+          }
+        }
+      }
     );
   }
 

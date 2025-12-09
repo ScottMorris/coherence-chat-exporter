@@ -6,11 +6,8 @@ import { Command } from 'commander';
 import { App } from './ui/App.js';
 import { ClaudeProvider } from './providers/claude.js';
 import { ChatGPTProvider } from './providers/chatgpt.js';
-import { ExportPipeline } from './export/pipeline.js';
-import { MarkdownTransformer } from './export/transformer.js';
-import { Organizer } from './export/organizer.js';
-import { Writer } from './export/writer.js';
-import { ConversationTagger } from './tagging/classifier.js';
+import { ProviderType } from './providers/types.js';
+import { ExportManager } from './export/manager.js';
 import { configManager } from './config-manager.js';
 import { InputResolver } from './utils/input-resolver.js';
 import { registerCompletionCommand } from './completion.js';
@@ -41,8 +38,8 @@ program
     try {
         console.log(chalk.cyan('Starting export...'));
 
-        const provider = options.provider === 'claude' ? new ClaudeProvider() :
-                         options.provider === 'chatgpt' ? new ChatGPTProvider() : null;
+        const provider = options.provider === ProviderType.Claude ? new ClaudeProvider() :
+                         options.provider === ProviderType.ChatGPT ? new ChatGPTProvider() : null;
 
         if (!provider) {
             console.error(chalk.red('Invalid provider. Use "claude" or "chatgpt".'));
@@ -54,28 +51,19 @@ program
         if (options.tag) enableTagging = true;
         if (options.noTag) enableTagging = false;
 
-        const transformer = new MarkdownTransformer();
-        const organizer = new Organizer(options.output);
-        const writer = new Writer();
         const resolver = new InputResolver();
-
-        let tagger: ConversationTagger | undefined;
-        if (enableTagging) {
-            console.log(chalk.yellow('Initializing AI Model (this may take a moment)...'));
-            tagger = new ConversationTagger();
-            await tagger.initialize();
-        }
-
-        const pipeline = new ExportPipeline(provider, transformer, organizer, writer, tagger);
 
         console.log(chalk.blue(`Reading from ${options.input}...`));
 
         // Resolve input (Zip/File/Dir)
         const exportData = await resolver.resolve(options.input);
 
-        const results = await pipeline.export(exportData, {
-            enableTagging: enableTagging,
-            tagThreshold: config.tagging.threshold
+        const results = await ExportManager.executeExport(exportData, {
+            provider,
+            taggingEnabled: enableTagging,
+            taggingThreshold: config.tagging.threshold,
+            outputPath: options.output,
+            onStatusUpdate: (msg) => console.log(chalk.yellow(msg))
         });
 
         console.log(chalk.green(`\n✔ Export complete! Processed ${results.length} conversations.`));

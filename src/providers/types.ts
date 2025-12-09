@@ -23,6 +23,11 @@ export interface Attachment {
   data?: string;
 }
 
+export enum ProviderType {
+  Claude = 'claude',
+  ChatGPT = 'chatgpt'
+}
+
 export interface Provider {
   name: string;
   normalize(data: any): Promise<Conversation[]>;
