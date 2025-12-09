@@ -39,7 +39,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
 
   // Dynamic calculation of items per page based on terminal height
   // Header (~5 lines) + Footer (~3 lines) + Padding (~2 lines) = ~10 lines overhead
-  const itemsPerPage = Math.max(5, terminalRows - 10);
+  const itemsPerPage = Math.max(5, terminalRows - 14);
 
   // Filter conversations by project
   const filteredConversations = useMemo(() => {
@@ -90,7 +90,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     if (input === 's' && onViewStats) {
         onViewStats();
     }
-    if (key.escape || key.backspace) {
+    if (key.escape || key.backspace || key.delete) {
         onBack();
     }
   });
