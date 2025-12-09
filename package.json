@@ -19,6 +19,8 @@
     "chalk": "^5.3.0",
     "commander": "^11.1.0",
     "date-fns": "^3.0.6",
+    "figlet": "^1.9.4",
+    "gradient-string": "^3.0.0",
     "gray-matter": "^4.0.3",
     "ink": "^6.5.1",
     "ink-select-input": "^6.2.0",
@@ -30,6 +32,8 @@
   },
   "devDependencies": {
     "@types/adm-zip": "^0.5.7",
+    "@types/figlet": "^1.7.0",
+    "@types/gradient-string": "^1.1.6",
     "@types/jest": "^29.5.11",
     "@types/node": "^20.10.0",
     "@types/react": "^19.0.0",
