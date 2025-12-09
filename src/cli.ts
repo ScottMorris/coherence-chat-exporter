@@ -89,6 +89,8 @@ program
 
 // Handle interactive mode if no args provided
 if (process.argv.length === 2) {
+    // Set terminal title
+    process.stdout.write('\x1b]0;Coherence Chat Exporter\x07');
     // Enter alternate screen buffer
     process.stdout.write('\x1b[?1049h');
 

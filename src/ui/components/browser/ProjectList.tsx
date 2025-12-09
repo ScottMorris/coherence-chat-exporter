@@ -48,7 +48,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({ conversations, onSelec
   });
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor="cyan" padding={1}>
+    <Box flexDirection="column" padding={1}>
       <Box marginBottom={1}><Text bold>Select Project / Group</Text></Box>
       {items.map((item, index) => (
         <Box key={index}>

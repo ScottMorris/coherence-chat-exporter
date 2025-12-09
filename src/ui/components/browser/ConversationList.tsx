@@ -39,8 +39,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
 
   // Dynamic calculation of items per page based on terminal height
   // Header (~5 lines) + Footer (~3 lines) + Padding (~2 lines) = ~10 lines overhead
-  // Plus Global Layout Border (~2 lines)
-  const itemsPerPage = Math.max(5, terminalRows - 14);
+  const itemsPerPage = Math.max(5, terminalRows - 10);
 
   // Filter conversations by project
   const filteredConversations = useMemo(() => {
@@ -97,7 +96,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   });
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor="cyan" padding={1} width="100%">
+    <Box flexDirection="column" padding={1} width="100%">
       <Box justifyContent="space-between" marginBottom={1}>
         <Text bold>
            Browsing: {projectName || 'All Conversations'}
