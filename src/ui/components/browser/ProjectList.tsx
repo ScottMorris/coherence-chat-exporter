@@ -58,9 +58,6 @@ export const ProjectList: React.FC<ProjectListProps> = ({ conversations, onSelec
     if (key.escape || key.backspace) {
         onBack();
     }
-    if (input === 's' && onViewStats) {
-        onViewStats();
-    }
   });
 
   return (

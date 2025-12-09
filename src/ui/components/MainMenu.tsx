@@ -42,7 +42,6 @@ export const MainMenu: React.FC<Props> = ({ onSelect, hasData = false }) => {
   const items = [
     { label: hasData ? '📦 Load New Source' : '📦 Load Export Data (Start Here)', value: 'source' },
     { label: '📂 Browse & Export', value: 'browse' },
-    { label: '📊 Stats Dashboard', value: 'stats' },
     { label: '🔍 Search', value: 'search' },
     { label: '📊 Stats Dashboard', value: 'stats' },
     { label: '🏷️  Configure Tagging', value: 'tagging' },

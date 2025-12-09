@@ -42,8 +42,8 @@ enum AppMode {
 enum MenuOption {
   Source = 'source',
   Browse = 'browse',
-  Stats = 'stats',
   Search = 'search',
+  Stats = 'stats',
   Tagging = 'tagging',
   Settings = 'settings',
   Exit = 'exit'
