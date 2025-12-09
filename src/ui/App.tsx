@@ -150,8 +150,12 @@ export const App: React.FC<AppProps> = ({ onExit, initialPath }) => {
         setView(AppView.Browser);
     }
     if (value === MenuOption.Stats) {
-        setMode(AppMode.Stats);
-        setView(AppView.SelectProvider);
+        if (loadedConversations.length === 0) {
+            setMode(AppMode.Stats);
+            setView(AppView.SelectProvider);
+        } else {
+            setView(AppView.Stats);
+        }
     }
     if (value === MenuOption.Tagging) setView(AppView.TaggingSetup);
     if (value === MenuOption.Settings) setView(AppView.Settings);

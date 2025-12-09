@@ -44,6 +44,7 @@ export const MainMenu: React.FC<Props> = ({ onSelect, hasData = false }) => {
     { label: '📂 Browse & Export', value: 'browse' },
     { label: '📊 Stats Dashboard', value: 'stats' },
     { label: '🔍 Search', value: 'search' },
+    { label: '📊 Stats Dashboard', value: 'stats' },
     { label: '🏷️  Configure Tagging', value: 'tagging' },
     { label: '⚙️  Settings', value: 'settings' },
     { label: '🚪 Exit', value: 'exit' }
@@ -77,7 +78,7 @@ export const MainMenu: React.FC<Props> = ({ onSelect, hasData = false }) => {
             onSelect={(item) => onSelect(item.value)}
             itemComponent={(props: any) => {
                 // Using any to avoid TS error on 'value'
-                const isActionRequiringData = ['browse', 'search'].includes(props.value);
+                const isActionRequiringData = ['browse', 'search', 'stats'].includes(props.value);
                 const isDisabled = isActionRequiringData && !hasData;
 
                 return (
