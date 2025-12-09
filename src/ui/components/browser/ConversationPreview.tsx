@@ -22,7 +22,8 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({ conver
   }, [stdout]);
 
   // Header (~5) + Footer (~3) + Padding (~2) = ~10 overhead
-  const viewHeight = Math.max(5, terminalRows - 10);
+  // Plus Global Layout Border (~2 lines)
+  const viewHeight = Math.max(5, terminalRows - 12);
 
   // Simple flatten of messages to lines for scrolling
   // In a real TUI this is complex, we'll do a simplified line-based approach

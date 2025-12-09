@@ -89,7 +89,17 @@ program
 
 // Handle interactive mode if no args provided
 if (process.argv.length === 2) {
-    render(React.createElement(App));
+    // Enter alternate screen buffer
+    process.stdout.write('\x1b[?1049h');
+
+    const app = render(React.createElement(App, {
+        onExit: () => app.unmount()
+    }));
+
+    await app.waitUntilExit();
+
+    // Exit alternate screen buffer
+    process.stdout.write('\x1b[?1049l');
 } else {
     program.parse(process.argv);
 }
