@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Text } from 'ink';
 import { MainMenu } from './components/MainMenu.js';
+import { FullScreenLayout } from './components/FullScreenLayout.js';
 import { ProviderSelect } from './components/ProviderSelect.js';
 import { ProgressBar } from './components/ProgressBar.js';
 import { PathInput } from './components/PathInput.js';
@@ -47,7 +48,11 @@ enum MenuOption {
   Exit = 'exit'
 }
 
-export const App = () => {
+interface AppProps {
+  onExit?: () => void;
+}
+
+export const App: React.FC<AppProps> = ({ onExit }) => {
   const [view, setView] = useState<AppView>(AppView.Menu);
   const [mode, setMode] = useState<AppMode>(AppMode.Export); // Track if we are in direct export or browse mode
   const [providerName, setProviderName] = useState<'claude' | 'chatgpt' | null>(null);
@@ -63,7 +68,11 @@ export const App = () => {
   }, []);
 
   const handleMenuSelect = (value: string) => {
-    if (value === MenuOption.Exit) process.exit(0);
+    if (value === MenuOption.Exit) {
+        if (onExit) onExit();
+        else process.exit(0);
+        return;
+    }
     if (value === MenuOption.Source) {
         setMode(AppMode.Export);
         setView(AppView.SelectProvider);
@@ -129,14 +138,6 @@ export const App = () => {
       if (!providerName) return;
       const resolver = new InputResolver();
       const rawData = await resolver.resolve(pathStr);
-
-      // For direct export, we normalize inside the pipeline usually, but our pipeline expects normalized data now?
-      // Let's check pipeline.export signature. It expects "any".
-      // Actually, looking at previous code: pipeline.export(exportData...) where exportData is from resolver.
-      // So pipeline handles normalization internally if we pass raw data?
-      // Wait, pipeline.ts: export(data: any, ...) -> calls provider.normalize(data).
-      // So yes, we pass raw data to pipeline.export.
-
       await executeExport(rawData);
   };
 
@@ -160,7 +161,6 @@ export const App = () => {
 
       setStatus(`Exporting...`);
 
-      // pipeline.export now accepts specificConversations (Conversation[]) or raw data
       const inputData = specificConversations || data;
 
       const results = await pipeline.export(inputData, {
@@ -187,7 +187,7 @@ export const App = () => {
   const config = configManager.getConfig();
 
   return (
-    <Box>
+    <FullScreenLayout>
       {view === AppView.Menu && <MainMenu onSelect={handleMenuSelect} />}
       {view === AppView.SelectProvider && (
           <ProviderSelect onSelect={handleProviderSelect} onBack={() => setView(AppView.Menu)} />
@@ -234,6 +234,6 @@ export const App = () => {
               <Text>Output saved to {config.outputPath}</Text>
           </Box>
       )}
-    </Box>
+    </FullScreenLayout>
   );
 };

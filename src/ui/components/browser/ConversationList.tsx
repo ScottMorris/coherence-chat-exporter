@@ -90,13 +90,13 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     if (input === 's' && onViewStats) {
         onViewStats();
     }
-    if (key.escape || key.backspace) {
+    if (key.escape || key.backspace || key.delete) {
         onBack();
     }
   });
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor="cyan" padding={1} width="100%">
+    <Box flexDirection="column" padding={1} width="100%">
       <Box justifyContent="space-between" marginBottom={1}>
         <Text bold>
            Browsing: {projectName || 'All Conversations'}
