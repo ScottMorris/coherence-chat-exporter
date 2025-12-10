@@ -100,7 +100,8 @@ program
         // If the user runs `coherence`, path is undefined.
         // If the user runs `coherence myfile.zip`, path is "myfile.zip".
         const app = render(React.createElement(App, {
-            initialPath: path
+            initialPath: path,
+            onExit: () => app.unmount()
         }));
 
         await app.waitUntilExit();
