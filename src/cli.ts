@@ -100,7 +100,7 @@ program
 
         // If the user runs `coherence`, path is undefined.
         // If the user runs `coherence myfile.zip`, path is "myfile.zip".
-        const app = render(React.createElement(App, { 
+        const app = render(React.createElement(App, {
             initialPath: path,
             onExit: () => {
                 // Exit alternate screen buffer
@@ -112,4 +112,3 @@ program
 
         await app.waitUntilExit();
     });
-

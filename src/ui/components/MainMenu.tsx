@@ -9,10 +9,10 @@ interface Props {
   hasData?: boolean;
 }
 
+// ItemProps must match ink-select-input's definition which does NOT include 'value'
 interface ItemProps {
     isSelected?: boolean;
     label: string;
-    value: string;
 }
 
 // A more dramatic ASCII brain (side view with convolutions)
@@ -82,8 +82,14 @@ export const MainMenu: React.FC<Props> = ({ onSelect, hasData = false }) => {
             items={items}
             onSelect={(item) => onSelect(item.value)}
             itemComponent={(props: ItemProps) => {
-                const isActionRequiringData = ['browse', 'search', 'stats'].includes(props.value);
-                const isDisabled = isActionRequiringData && !hasData;
+                // Determine disabled state based on label content since 'value' is not passed to itemComponent
+                const label = props.label;
+                const requiresData =
+                    label.includes('Browse') ||
+                    label.includes('Search') ||
+                    label.includes('Stats');
+
+                const isDisabled = requiresData && !hasData;
 
                 return (
                     <Text color={props.isSelected ? 'cyan' : (isDisabled ? 'gray' : 'white')}>
