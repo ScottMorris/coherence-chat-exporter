@@ -5,11 +5,12 @@ import { Conversation } from '../../../providers/types.js';
 interface ProjectListProps {
   conversations: Conversation[];
   onSelectProject: (projectName: string | null) => void;
+  onSearch: () => void;
   onBack: () => void;
   onViewStats?: () => void;
 }
 
-export const ProjectList: React.FC<ProjectListProps> = ({ conversations, onSelectProject, onBack, onViewStats }) => {
+export const ProjectList: React.FC<ProjectListProps> = ({ conversations, onSelectProject, onSearch, onBack, onViewStats }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   // Extract unique projects
@@ -39,11 +40,23 @@ export const ProjectList: React.FC<ProjectListProps> = ({ conversations, onSelec
     if (key.return) {
       onSelectProject(items[selectedIndex].value);
     }
-    if (key.escape || key.backspace) {
-        onBack();
+    // Conflict: 's' was used for both search (my change) and stats (upstream change).
+    // I will remap Search to 'f' (Find) to avoid conflict, or 'S' (shift+s).
+    // Or I will remap Stats to 't'.
+    // Let's use 'f' for Search (Find) since '/' is also common but usually reserved for command inputs.
+    // Wait, Main Menu has "Stats" and "Search" separately.
+    // In Browser, let's use:
+    // 's' -> Stats
+    // '/' -> Search
+
+    if (input === '/') {
+        onSearch();
     }
     if (input === 's' && onViewStats) {
         onViewStats();
+    }
+    if (key.escape || key.backspace) {
+        onBack();
     }
   });
 
@@ -58,8 +71,13 @@ export const ProjectList: React.FC<ProjectListProps> = ({ conversations, onSelec
           </Text>
         </Box>
       ))}
-      <Box marginTop={1}>
-        <Text color="gray">[Enter] Select  [s] Stats  [Esc] Back</Text>
+      <Box marginTop={1} borderStyle="single" borderColor="gray">
+          <Text>
+              <Text bold color="green">Enter</Text>: Select |
+              <Text bold color="green"> s</Text>: Stats |
+              <Text bold color="green"> /</Text>: Search |
+              <Text bold color="green"> Esc</Text>: Back
+          </Text>
       </Box>
     </Box>
   );
