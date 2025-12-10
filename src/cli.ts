@@ -38,7 +38,6 @@ program
   .option('--tag', 'Enable AI tagging')
   .option('--no-tag', 'Disable AI tagging')
   .action(async (options) => {
-    program.parse(process.argv);
     try {
         console.log(chalk.cyan('Starting export...'));
 
@@ -101,14 +100,13 @@ program
         // If the user runs `coherence`, path is undefined.
         // If the user runs `coherence myfile.zip`, path is "myfile.zip".
         const app = render(React.createElement(App, {
-            initialPath: path,
-            onExit: () => {
-                // Exit alternate screen buffer
-                process.stdout.write('\x1b[?1049l');
-                app.unmount();
-                process.exit(0);
-            }
+            initialPath: path
         }));
 
         await app.waitUntilExit();
+
+        // Exit alternate screen buffer on clean exit
+        process.stdout.write('\x1b[?1049l');
     });
+
+program.parse(process.argv);
